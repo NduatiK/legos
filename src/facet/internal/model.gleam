@@ -130,7 +130,7 @@ pub type Variant {
   VariantIndexed(String, Int)
 }
 
-fn render_variant(var: Variant) {
+pub fn render_variant(var: Variant) {
   case var {
     VariantActive(name) -> "\"" <> name <> "\""
 
@@ -140,7 +140,7 @@ fn render_variant(var: Variant) {
   }
 }
 
-fn variant_name(var: Variant) {
+pub fn variant_name(var: Variant) {
   case var {
     VariantActive(name) -> name
 
@@ -249,6 +249,7 @@ pub type Location {
 
 pub type Color {
   Rgba(Float, Float, Float, Float)
+  Oklch(Float, Float, Float)
 }
 
 pub type NodeName {
@@ -267,7 +268,7 @@ pub type NearbyChildren(msg) {
   )
 }
 
-const div = Generic
+pub const div = Generic
 
 pub type Gathered(msg) {
   Gathered(
@@ -1061,7 +1062,7 @@ fn gather_attr_recursive(
                   case portion == 1 {
                     True ->
                       gather_attr_recursive(
-                        style.classes_height_fill <> " " <> classes,
+                        echo { style.classes_height_fill <> " " <> classes },
                         node,
                         has
                           |> flag.add(flag.height_fill())
@@ -2200,8 +2201,8 @@ pub type ShadowFloat {
   ShadowFloat(color: Color, offset: #(Float, Float), blur: Float, size: Float)
 }
 
-pub type InsettableShadow {
-  InsettableShadow(
+pub type InsetShadow {
+  InsetShadow(
     color: Color,
     offset: #(Float, Float),
     blur: Float,
@@ -2210,7 +2211,7 @@ pub type InsettableShadow {
   )
 }
 
-fn root_style() {
+pub fn root_style() {
   let families = [
     Typeface("Open Sans"),
     Typeface("Helvetica"),
@@ -2243,7 +2244,7 @@ fn root_style() {
   ]
 }
 
-fn render_font_class_name(current, font) {
+pub fn render_font_class_name(current, font) {
   current
   <> case font {
     Serif -> "serif"
@@ -2282,7 +2283,7 @@ fn render_focus_style(focus: FocusStyle) -> List(Style) {
         option.map(focus.shadow, fn(shadow) {
           Property(
             "box-shadow",
-            format_box_shadow(InsettableShadow(
+            format_box_shadow(InsetShadow(
               inset: False,
               color: shadow.color,
               offset: #(
@@ -2315,7 +2316,7 @@ fn render_focus_style(focus: FocusStyle) -> List(Style) {
         option.map(focus.shadow, fn(shadow) {
           Property(
             "box-shadow",
-            format_box_shadow(InsettableShadow(
+            format_box_shadow(InsetShadow(
               inset: False,
               color: shadow.color,
               offset: #(
@@ -2333,7 +2334,7 @@ fn render_focus_style(focus: FocusStyle) -> List(Style) {
   ]
 }
 
-const focus_default_style = FocusStyle(
+pub const focus_default_style = FocusStyle(
   border_color: None,
   background_color: None,
   shadow: Some(
@@ -3142,7 +3143,7 @@ fn format_drop_shadow(shadow: ShadowFloat) -> String {
   )
 }
 
-fn format_text_shadow(shadow: ShadowFloat) -> String {
+pub fn format_text_shadow(shadow: ShadowFloat) -> String {
   string.join(
     [
       float.to_string(pair.first(shadow.offset)) <> "px",
@@ -3154,7 +3155,7 @@ fn format_text_shadow(shadow: ShadowFloat) -> String {
   )
 }
 
-fn text_shadow_class(shadow: ShadowFloat) -> String {
+pub fn text_shadow_class(shadow: ShadowFloat) -> String {
   string.join(
     [
       "txt",
@@ -3167,7 +3168,7 @@ fn text_shadow_class(shadow: ShadowFloat) -> String {
   )
 }
 
-fn format_box_shadow(shadow: InsettableShadow) -> String {
+pub fn format_box_shadow(shadow: InsetShadow) -> String {
   string.join(
     option.values([
       case shadow.inset {
@@ -3184,7 +3185,7 @@ fn format_box_shadow(shadow: InsettableShadow) -> String {
   )
 }
 
-fn box_shadow_class(shadow: InsettableShadow) -> String {
+pub fn box_shadow_class(shadow: InsetShadow) -> String {
   string.join(
     [
       case shadow.inset {
@@ -3201,7 +3202,7 @@ fn box_shadow_class(shadow: InsettableShadow) -> String {
   )
 }
 
-fn float_class(x: Float) -> String {
+pub fn float_class(x: Float) -> String {
   int.to_string(float.round(x *. 255.0))
 }
 
@@ -3215,6 +3216,14 @@ pub fn format_color(color: Color) -> String {
 
       "rgba(" <> r <> "," <> g <> "," <> b <> "," <> a <> ")"
     }
+    Oklch(a, b, c) ->
+      "oklch("
+      <> float.to_string(a)
+      <> " "
+      <> float.to_string(b)
+      <> " "
+      <> float.to_string(c)
+      <> ")"
   }
 }
 
@@ -3228,6 +3237,14 @@ pub fn format_color_class(color: Color) -> String {
       <> float_class(blue)
       <> "-"
       <> float_class(alpha)
+    }
+    Oklch(a, b, c) -> {
+      "oklch-"
+      <> float_class(a)
+      <> "-"
+      <> float_class(b)
+      <> "-"
+      <> float_class(c)
     }
   }
 }
@@ -3333,33 +3350,33 @@ pub fn get_style_name(style: Style) -> String {
 
 // {- Constants -}
 
-fn as_grid() {
+pub fn as_grid() {
   AsGrid
 }
 
-fn as_row() {
+pub fn as_row() {
   AsRow
 }
 
-fn as_column() {
+pub fn as_column() {
   AsColumn
 }
 
-fn as_el() {
+pub fn as_el() {
   AsEl
 }
 
-fn as_paragraph() {
+pub fn as_paragraph() {
   AsParagraph
 }
 
-fn as_text_column() {
+pub fn as_text_column() {
   AsTextColumn
 }
 
 // {- Mapping -}
 
-pub fn map(fn_: fn(msg) -> msg2, el: Element(msg)) -> Element(msg2) {
+pub fn map(el: Element(msg), fn_: fn(msg) -> msg2) -> Element(msg2) {
   case el {
     Styled(styles:, html:) ->
       Styled(styles: styles, html: fn(add) {
@@ -3375,8 +3392,8 @@ pub fn map(fn_: fn(msg) -> msg2, el: Element(msg)) -> Element(msg2) {
 }
 
 pub fn map_attr(
-  fn_: fn(msg) -> msg2,
   attr: Attribute(aligned, msg),
+  fn_: fn(msg) -> msg2,
 ) -> Attribute(aligned, msg2) {
   case attr {
     NoAttribute -> NoAttribute
@@ -3395,7 +3412,7 @@ pub fn map_attr(
 
     StyleClass(flag, style) -> StyleClass(flag, style)
 
-    Nearby(location, elem) -> Nearby(location, map(fn_, elem))
+    Nearby(location, elem) -> Nearby(location, map(elem, fn_))
 
     Attr(html_attr) -> Attr(map_html_attr(html_attr, fn_))
 
@@ -3404,8 +3421,8 @@ pub fn map_attr(
 }
 
 pub fn map_attr_from_style(
-  fn_: fn(msg) -> msg2,
   attr: Attribute(a, msg),
+  fn_: fn(msg) -> msg2,
 ) -> Attribute(a, msg2) {
   case attr {
     NoAttribute -> NoAttribute
@@ -3425,7 +3442,7 @@ pub fn map_attr_from_style(
     // invalidation key "border-color" as opposed to "border-color-10-10-10" that will be the key for the class
     StyleClass(flag, style) -> StyleClass(flag, style)
 
-    Nearby(location, elem) -> Nearby(location, map(fn_, elem))
+    Nearby(location, elem) -> Nearby(location, map(elem, fn_))
 
     Attr(html_attr) -> Attr(map_html_attr(html_attr, fn_))
 
