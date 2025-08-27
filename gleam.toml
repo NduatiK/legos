@@ -1,10 +1,8 @@
 name = "legos"
-version = "1.0.1"
-target = "javascript"
-
+version = "1.0.2"
 
 description = "Layout and style that's easy to refactor, all without thinking about CSS."
-licences = ["MIT"]
+licences = ["BSD-3-Clause"]
 repository = { type = "github", user = "NduatiK", repo = "legos" }
 # links = [{ title = "Website", href = "" }]
 #
