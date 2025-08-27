@@ -1,12 +1,12 @@
-import facet/background
-import facet/border
-import facet/color
-import facet/element as ui
-import facet/font
-import facet/input
-import facet/region
 import gleam/float
 import gleam/option.{Some}
+import legos/background
+import legos/border
+import legos/color
+import legos/element as ui
+import legos/font
+import legos/input
+import legos/region
 import lustre
 
 pub fn main() {

@@ -1,12 +1,3 @@
-# legos
-
-[![Package Version](https://img.shields.io/hexpm/v/legos)](https://hex.pm/packages/legos)
-[![Hex Docs](https://img.shields.io/badge/hex-docs-ffaff3)](https://hexdocs.pm/legos/)
-
-```sh
-gleam add legos@1
-```
-```gleam
 import legos/background
 import legos/border
 import legos/color
@@ -33,11 +24,19 @@ pub fn main() {
 }
 
 pub fn my_row_of_stuff() -> ui.Element(_) {
-  ui.row([ui.width(ui.fill()), ui.center_y(), ui.spacing(30)], [
-    my_element(),
-    my_element(),
-    ui.el([ui.align_right()], my_element()),
-  ])
+  ui.row(
+    [
+      ui.width(ui.fill()),
+      ui.center_y(),
+      ui.spacing(30),
+      ui.padding(20),
+    ],
+    [
+      my_element(),
+      my_element(),
+      ui.el([ui.align_right()], my_element()),
+    ],
+  )
 }
 
 pub fn my_element() -> ui.Element(_) {
@@ -51,13 +50,3 @@ pub fn my_element() -> ui.Element(_) {
     ui.text("stylish!"),
   )
 }
-```
-
-Further documentation can be found at <https://hexdocs.pm/legos>.
-
-## Development
-
-```sh
-gleam run   # Run the project
-gleam test  # Run the tests
-```

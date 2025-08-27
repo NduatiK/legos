@@ -1,6 +1,6 @@
-import facet/element.{type Attribute}
-import facet/internal/model as internal
 import gleam/dynamic/decode.{type Decoder}
+import legos/element.{type Attribute}
+import legos/internal/model as internal
 import lustre/event
 
 // MOUSE EVENTS ----------------------------------------------------------------

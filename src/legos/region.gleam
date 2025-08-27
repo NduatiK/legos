@@ -1,5 +1,5 @@
-import facet/element.{type Attribute}
-import facet/internal/model as internal
+import legos/element.{type Attribute}
+import legos/internal/model as internal
 
 /// Mark an element as the main content area
 pub fn main_content() -> Attribute(msg) {

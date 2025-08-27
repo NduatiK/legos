@@ -1,5 +1,3 @@
-import facet/internal/flag.{type Flag}
-import facet/internal/style
 import gleam/dynamic/decode
 import gleam/float
 import gleam/int
@@ -11,6 +9,8 @@ import gleam/pair
 import gleam/result
 import gleam/set.{type Set}
 import gleam/string
+import legos/internal/flag.{type Flag}
+import legos/internal/style
 import lustre/attribute.{type Attribute as LustreAttribute} as attr
 import lustre/element.{type Element as LustreElement}
 import lustre/element/html
@@ -33,10 +33,6 @@ pub type EmbedStyle {
   NoStyleSheet
   StaticRootAndDynamic(OptionRecord, List(Style))
   OnlyDynamic(OptionRecord, List(Style))
-}
-
-fn no_style_sheet() -> EmbedStyle {
-  NoStyleSheet
 }
 
 pub type LayoutContext {
@@ -232,12 +228,6 @@ pub type Length {
   ScreenPct(Int)
   Min(Int, Length)
   Max(Int, Length)
-}
-
-type Axis {
-  XAxis
-  YAxis
-  AllAxis
 }
 
 pub type Location {
@@ -483,30 +473,6 @@ pub fn embed_keyed(
   }
 }
 
-fn reduce_styles_recursive(
-  cache: Set(String),
-  found: List(Style),
-  styles: List(Style),
-) -> List(Style) {
-  case styles {
-    [] -> found
-
-    [head, ..remaining] -> {
-      let style_name = get_style_name(head)
-
-      case set.contains(cache, style_name) {
-        True -> reduce_styles_recursive(cache, found, remaining)
-        False ->
-          reduce_styles_recursive(
-            set.insert(cache, style_name),
-            [head, ..found],
-            remaining,
-          )
-      }
-    }
-  }
-}
-
 fn reduce_styles(
   styles: #(Set(String), List(Style)),
   style: Style,
@@ -517,50 +483,6 @@ fn reduce_styles(
   case set.contains(cache, style_name) {
     True -> #(cache, existing)
     False -> #(set.insert(cache, style_name), [style, ..existing])
-  }
-}
-
-fn reduce_recursive_calc_name(
-  found: List(Style),
-  styles: List(#(String, Style)),
-) -> List(Style) {
-  case styles {
-    [] -> found
-
-    [#(_, head_of_list)] -> [head_of_list, ..found]
-
-    [#(head_of_list_name, head_of_list), #(other_name, other), ..remaining] ->
-      case head_of_list_name != other_name {
-        True ->
-          reduce_recursive_calc_name([head_of_list, ..found], [
-            #(other_name, other),
-            ..remaining
-          ])
-        False ->
-          reduce_recursive_calc_name(found, [#(other_name, other), ..remaining])
-      }
-  }
-}
-
-fn reduce_recursive(
-  found: List(Style),
-  styles: List(#(String, Style)),
-) -> List(Style) {
-  case styles {
-    [] -> found
-
-    [#(_, head_of_list)] -> [head_of_list, ..found]
-
-    [#(head_of_list_name, head_of_list), #(other_name, other), ..remaining] -> {
-      case head_of_list_name != other_name {
-        True ->
-          reduce_recursive([head_of_list, ..found], [
-            #(other_name, other),
-            ..remaining
-          ])
-        False -> reduce_recursive(found, [#(other_name, other), ..remaining])
-      }
-    }
   }
 }
 
@@ -1965,14 +1887,6 @@ fn add_keyed_children(
   }
 }
 
-const unit = 0
-
-const default_options = OptionRecord(
-  hover: AllowHover,
-  focus: focus_default_style,
-  mode: Layout,
-)
-
 fn static_root(opts: OptionRecord) {
   case opts.mode {
     Layout ->
@@ -1990,99 +1904,6 @@ fn static_root(opts: OptionRecord) {
         [],
       )
   }
-}
-
-fn add_when(if_this: Bool, x: a, to: List(a)) -> List(a) {
-  case if_this {
-    True -> [x, ..to]
-    False -> to
-  }
-}
-
-// {-| TODO:
-
-// This doesn't reduce equivalent attributes completely.
-
-// -}
-fn filter(attrs: List(Attribute(aligned, msg))) -> List(Attribute(aligned, msg)) {
-  attrs
-  |> list.fold_right(#([], set.new()), fn(acc, x) {
-    let #(found, has) = acc
-    case x {
-      NoAttribute -> #(found, has)
-
-      Class(_, _) -> #([x, ..found], has)
-
-      Attr(_) -> #([x, ..found], has)
-
-      StyleClass(_, _) -> #([x, ..found], has)
-
-      Width(_) ->
-        case set.contains(has, "width") {
-          True -> #(found, has)
-          False -> #([x, ..found], set.insert(has, "width"))
-        }
-
-      Height(_) ->
-        case set.contains(has, "height") {
-          True -> #(found, has)
-          False -> #([x, ..found], set.insert(has, "height"))
-        }
-
-      Describe(_) ->
-        case set.contains(has, "described") {
-          True -> #(found, has)
-          False -> #([x, ..found], set.insert(has, "described"))
-        }
-
-      Nearby(_, _) -> #([x, ..found], has)
-
-      AlignX(_) ->
-        case set.contains(has, "align-x") {
-          True -> #(found, has)
-          False -> #([x, ..found], set.insert(has, "align-x"))
-        }
-
-      AlignY(_) ->
-        case set.contains(has, "align-y") {
-          True -> #(found, has)
-          False -> #([x, ..found], set.insert(has, "align-y"))
-        }
-
-      TransformComponent(_, _) ->
-        case set.contains(has, "transform") {
-          True -> #(found, has)
-          False -> #([x, ..found], set.insert(has, "transform"))
-        }
-    }
-  })
-  |> pair.first()
-}
-
-fn is_content(len) {
-  case len {
-    Content -> True
-
-    Max(_, l) -> is_content(l)
-
-    Min(_, l) -> is_content(l)
-
-    _ -> False
-  }
-}
-
-fn get(
-  attrs: List(Attribute(aligned, msg)),
-  is_attr: fn(Attribute(aligned, msg)) -> Bool,
-) -> List(Attribute(aligned, msg)) {
-  attrs
-  |> filter
-  |> list.fold_right([], fn(found, x) {
-    case is_attr(x) {
-      True -> [x, ..found]
-      False -> found
-    }
-  })
 }
 
 pub type Spacing {
@@ -2744,10 +2565,6 @@ fn encode_styles(options: OptionRecord, stylesheet: List(Style)) {
   |> json.object
 }
 
-type StyleSheetB(a, b) {
-  StyleSheetB(rules: a, top_level: a)
-}
-
 fn to_style_sheet_string(
   options: OptionRecord,
   stylesheet: List(Style),
@@ -2968,7 +2785,7 @@ pub fn render_style_rule(
       let left = "." <> style.classes_align_left
       let right = "." <> style.classes_align_right
       let any = "." <> style.classes_any
-      let single = "." <> style.classes_single
+      // let single = "." <> style.classes_single
 
       list.flatten([
         render_style(
@@ -3226,17 +3043,17 @@ fn length_class_name(len: Length) -> String {
   }
 }
 
-fn format_drop_shadow(shadow: ShadowFloat) -> String {
-  string.join(
-    [
-      float.to_string(pair.first(shadow.offset)) <> "px",
-      float.to_string(pair.second(shadow.offset)) <> "px",
-      float.to_string(shadow.blur) <> "px",
-      format_color(shadow.color),
-    ],
-    " ",
-  )
-}
+// fn format_drop_shadow(shadow: ShadowFloat) -> String {
+//   string.join(
+//     [
+//       float.to_string(pair.first(shadow.offset)) <> "px",
+//       float.to_string(pair.second(shadow.offset)) <> "px",
+//       float.to_string(shadow.blur) <> "px",
+//       format_color(shadow.color),
+//     ],
+//     " ",
+//   )
+// }
 
 pub fn format_text_shadow(shadow: ShadowFloat) -> String {
   string.join(
@@ -3569,7 +3386,7 @@ fn unwrap_decs_helper(
   case attr {
     StyleClass(_, style) -> #(list.append([style], styles), trans)
 
-    TransformComponent(flag, component) -> #(
+    TransformComponent(_flag, component) -> #(
       styles,
       compose_transformation(trans, component),
     )
@@ -3602,10 +3419,10 @@ pub fn only_styles(attr: Attribute(aligned, msg)) -> Option(Style) {
 //{- Font Adjustments -}
 
 pub fn convert_adjustment(adjustment: Adjustment) -> ConvertedAdjustment {
-  let line_height = 1.5
-  let base = line_height
-  let normal_descender = { line_height -. 1.0 } /. 2.0
-  let old_middle = line_height /. 2.0
+  // let line_height = 1.5
+  // let base = line_height
+  // let normal_descender = { line_height -. 1.0 } /. 2.0
+  // let old_middle = line_height /. 2.0
 
   let lines = [
     adjustment.capital,

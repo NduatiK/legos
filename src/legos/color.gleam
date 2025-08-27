@@ -1,5 +1,5 @@
-import facet/internal/model.{Oklch, Rgba}
 import gleam/int
+import legos/internal/model.{Oklch, Rgba}
 
 pub fn transparent(color) {
   case color {

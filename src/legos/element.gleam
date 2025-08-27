@@ -1,11 +1,11 @@
-import facet/internal/flag
-import facet/internal/model
-import facet/internal/style
 import gleam/float
 import gleam/int
 import gleam/list
 import gleam/option.{None, Some}
 import gleam/string
+import legos/internal/flag
+import legos/internal/model
+import legos/internal/style
 import lustre/attribute as attr
 import lustre/vdom/vattr
 import lustre/vdom/vnode
@@ -32,12 +32,12 @@ pub type Attr(decorative, msg) =
 pub type Decoration(a, b) =
   model.Attribute(a, b)
 
-/// Render a Lustre element with facet
+/// Render a Lustre element with legos
 pub fn html(a: fn(model.LayoutContext) -> vnode.Element(e)) -> Element(e) {
   model.Unstyled(a)
 }
 
-/// Render a Lustre attribute with facet
+/// Render a Lustre attribute with legos
 pub fn html_attribute(a: vattr.Attribute(c)) -> Attr(d, c) {
   model.Attr(a)
 }

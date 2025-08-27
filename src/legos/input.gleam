@@ -1,21 +1,21 @@
-import facet/background
-import facet/border
-import facet/color.{rgb, rgba, white}
-import facet/element.{
-  type Attribute, type Element, fill, height, none, pointer, shrink, width,
-}
-import facet/events
-import facet/font
-import facet/internal/flag
-import facet/internal/model as internal
-import facet/internal/style
-import facet/region
 import gleam/dynamic/decode
 import gleam/float
 import gleam/int
 import gleam/list
 import gleam/option.{type Option, None, Some}
 import gleam/result
+import legos/background
+import legos/border
+import legos/color.{rgb, rgba, white}
+import legos/element.{
+  type Attribute, type Element, fill, height, none, pointer, shrink, width,
+}
+import legos/events
+import legos/font
+import legos/internal/flag
+import legos/internal/model as internal
+import legos/internal/style
+import legos/region
 import lustre/attribute
 import lustre/element/html
 import lustre/event
@@ -752,7 +752,7 @@ pub fn slider(
                 True -> internal.Attr(attribute.attribute("orient", "vertical"))
                 False -> internal.NoAttribute
               },
-              element.width(case echo vertical {
+              element.width(case vertical {
                 True -> option.unwrap(track_height, element.px(20))
                 False -> option.unwrap(track_width, element.fill())
               }),
@@ -829,7 +829,7 @@ fn view_vertical_thumb(
   element.column(
     [
       element.height(element.fill()),
-      echo element.width(option.unwrap(track_width, element.fill())),
+      element.width(option.unwrap(track_width, element.fill())),
       element.center_x(),
     ],
     [
@@ -882,7 +882,7 @@ fn text_helper(
 
   let get_padding = fn(attr) {
     case attr {
-      internal.StyleClass(cls, internal.PaddingStyle(pad, t, r, b, l)) ->
+      internal.StyleClass(_cls, internal.PaddingStyle(_pad, t, r, b, l)) ->
         // -- The - 3 is here to prevent accidental triggering of scrollbars
         // -- when things are off by a pixel or two.
         // -- (or at least when the browser *thinks* it's off by a pixel or two)
@@ -917,7 +917,7 @@ fn text_helper(
     internal.element(
       internal.AsEl,
       case text_input.type_ {
-        TextInputNode(input_type) -> internal.NodeName("input")
+        TextInputNode(_input_type) -> internal.NodeName("input")
         TextArea -> internal.NodeName("textarea")
       },
       list.flatten([
@@ -1238,7 +1238,7 @@ fn redistribute_over(
           cover: els.cover,
         )
 
-      internal.StyleClass(cls, internal.PaddingStyle(_pad, t, r, b, l)) ->
+      internal.StyleClass(_cls, internal.PaddingStyle(_pad, t, r, b, l)) ->
         case is_multiline {
           True ->
             Redistributed(
@@ -1323,7 +1323,7 @@ fn redistribute_over(
           cover: els.cover,
         )
 
-      internal.StyleClass(flag, cls) ->
+      internal.StyleClass(_flag, _cls) ->
         Redistributed(
           full_parent: els.full_parent,
           parent: [attr, ..els.parent],
@@ -1385,19 +1385,19 @@ fn is_fill(len: internal.Length) -> Bool {
   }
 }
 
-fn is_pixel(len: internal.Length) -> Bool {
-  case len {
-    internal.Content -> False
-    internal.Px(_) -> True
-    // TODO: Might be True
-    internal.Pct(_) -> False
-    // TODO: Might be True
-    internal.ScreenPct(_) -> False
-    internal.Fill(_) -> False
-    internal.Min(_, l) -> is_pixel(l)
-    internal.Max(_, l) -> is_pixel(l)
-  }
-}
+// fn is_pixel(len: internal.Length) -> Bool {
+//   case len {
+//     internal.Content -> False
+//     internal.Px(_) -> True
+//     // TODO: Might be True
+//     internal.Pct(_) -> False
+//     // TODO: Might be True
+//     internal.ScreenPct(_) -> False
+//     internal.Fill(_) -> False
+//     internal.Min(_, l) -> is_pixel(l)
+//     internal.Max(_, l) -> is_pixel(l)
+//   }
+// }
 
 fn apply_label(
   attrs: List(Attribute(msg)),

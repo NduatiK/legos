@@ -1,6 +1,6 @@
-import facet/element.{type Attribute, type Element, height, shrink, width}
-import facet/internal/model as internal
-import facet/internal/style
+import legos/element.{type Attribute, type Element, height, shrink, width}
+import legos/internal/model as internal
+import legos/internal/style
 
 /// Create a keyed element that helps optimize cases where children are getting
 /// added, moved, removed, etc. Common examples include:

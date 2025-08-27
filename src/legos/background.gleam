@@ -1,10 +1,10 @@
-import facet/element.{type Attr, type Attribute, type Color}
-import facet/internal/flag
-import facet/internal/model as internal
 import gleam/float
 import gleam/int
 import gleam/list
 import gleam/string
+import legos/element.{type Attr, type Attribute, type Color}
+import legos/internal/flag
+import legos/internal/model as internal
 import lustre/attribute as attr
 
 /// A background color attribute
@@ -176,8 +176,15 @@ fn direction_class_prop(direction) {
       float.to_string(angle) <> "rad",
     )
     ToDegrees(angle) -> #(
-      internal.float_class(int.to_float(angle)),
-      float.to_string(int.to_float(angle)) <> "degrees",
+      internal.float_class(int.to_float(flip_angle(angle))),
+      int.to_string(flip_angle(angle)) <> "deg",
     )
+  }
+}
+
+fn flip_angle(angle) {
+  case angle + 180 > 360 {
+    True -> angle + 180 - 360
+    False -> angle + 180
   }
 }

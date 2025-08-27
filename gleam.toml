@@ -1,12 +1,10 @@
-name = "facet"
-version = "1.0.0"
+name = "legos"
+version = "1.0.1"
 target = "javascript"
 
-# Fill out these fields if you intend to generate HTML documentation or publish
-# your project to the Hex package manager.
-#
-# description = ""
-# licences = ["Apache-2.0"]
+
+description = "Layout and style that's easy to refactor, all without thinking about CSS."
+licences = ["MIT"]
 # repository = { type = "github", user = "", repo = "" }
 # links = [{ title = "Website", href = "" }]
 #

@@ -1,6 +1,6 @@
-import facet/border
-import facet/element as ui
-import facet/font
+import legos/border
+import legos/element as ui
+import legos/font
 
 type Person {
   Person(first_name: String, last_name: String)
@@ -31,18 +31,22 @@ pub fn view() {
       ],
       data: persons,
       columns: [
-        ui.TableColumn(header: ui.none, width: ui.shrink(), view: fn(person: Person) {
-          ui.image(
-            [
-              border.rounded(25),
-              border.rounded(25),
-              ui.clip(),
-            ],
-            src: "https://testingbot.com/free-online-tools/random-avatar/50?u="
-              <> person.first_name,
-            description: person.first_name <> "'s avatar",
-          )
-        }),
+        ui.TableColumn(
+          header: ui.none,
+          width: ui.shrink(),
+          view: fn(person: Person) {
+            ui.image(
+              [
+                border.rounded(25),
+                border.rounded(25),
+                ui.clip(),
+              ],
+              src: "https://testingbot.com/free-online-tools/random-avatar/50?u="
+                <> person.first_name,
+              description: person.first_name <> "'s avatar",
+            )
+          },
+        ),
         ui.TableColumn(
           header: ui.text("First Name"),
           width: ui.shrink(),

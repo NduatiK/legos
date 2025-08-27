@@ -1,12 +1,12 @@
-import facet/element.{type Attr, type Attribute, type Color}
-import facet/internal/flag
-import facet/internal/model as internal
-import facet/internal/style
 import gleam/float
 import gleam/int
 import gleam/list
 import gleam/option.{type Option}
 import gleam/string
+import legos/element.{type Attr, type Attribute, type Color}
+import legos/internal/flag
+import legos/internal/model as internal
+import legos/internal/style
 
 pub type Font =
   internal.Font

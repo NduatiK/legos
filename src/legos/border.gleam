@@ -1,9 +1,9 @@
-import facet/element.{type Color}
-import facet/internal/flag
-import facet/internal/model as internal
-import facet/internal/style
 import gleam/int
 import gleam/pair
+import legos/element.{type Color}
+import legos/internal/flag
+import legos/internal/model as internal
+import legos/internal/style
 
 pub type Shadow =
   internal.Shadow

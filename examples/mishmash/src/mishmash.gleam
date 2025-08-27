@@ -1,14 +1,18 @@
-import facet/background
-import facet/border
-import facet/color
-import facet/element as ui
-import facet/font
-import facet/input
 import gleam/int
 import gleam/list
-import gleam/option.{None, Some}
+import legos/background
+import legos/border
+import legos/color
+import legos/element as ui
+import legos/font
 import lustre
 import mishmash/colors
+import mishmash/components.{button, card, card_text, divider, primary_button}
+import mishmash/fonts
+
+const max_width = 1560
+
+const gutter_x = 20
 
 pub fn main() {
   let app =
@@ -20,8 +24,8 @@ pub fn main() {
           ui.width(ui.fill()),
           ui.scrollbars(),
           font.family([font.typeface("Plus Jakarta Sans"), font.sans_serif()]),
-          background.color(color.gray_50()),
-          font.color(color.gray_800()),
+          background.color(color.neutral_50()),
+          font.color(color.neutral_800()),
         ],
         view(model),
       )
@@ -65,6 +69,9 @@ fn view(model: Model) {
       view_about(),
       ui.vspace(100),
       view_about_2(),
+      ui.vspace(100),
+      view_about_3(),
+      ui.vspace(100),
     ],
   )
 }
@@ -77,7 +84,7 @@ fn view_header() {
       font.size(18),
       ui.space_evenly(),
       ui.padding_xy(20, 25),
-      ui.width(ui.fill() |> ui.maximum(1300)),
+      ui.width(ui.fill() |> ui.maximum(max_width)),
       ui.center_x(),
     ],
     [
@@ -99,8 +106,9 @@ fn view_product(count) {
       font.medium(),
       font.size(18),
       ui.spacing(30),
-      ui.padding_xy(20, 0),
-      ui.width(ui.fill() |> ui.maximum(1300)),
+      ui.padding_xy(gutter_x, 0),
+      ui.width(ui.fill() |> ui.maximum(max_width)),
+      ui.height(ui.shrink() |> ui.minimum(860)),
       ui.center_x(),
     ],
     [
@@ -109,7 +117,7 @@ fn view_product(count) {
           border.rounded(12),
           ui.height(ui.fill()),
           ui.width(ui.fill_portion(3)),
-          background.gradient(background.ToDegrees(320), [
+          background.gradient(background.ToDegrees(-20), [
             background.percent(0, colors.vibrant_yellow()),
             background.percent(60, colors.vibrant_yellow()),
             background.percent(60, colors.peach()),
@@ -122,7 +130,7 @@ fn view_product(count) {
           border.rounded(12),
           ui.height(ui.fill()),
           ui.width(ui.fill_portion(3)),
-          background.color(color.gray_300()),
+          background.color(color.neutral_300()),
         ],
         ui.none,
       ),
@@ -136,7 +144,6 @@ fn view_product_info(count) {
     [
       border.rounded(12),
       ui.width(ui.fill_portion(2)),
-      // ui.height(ui.pct_screen(80)),
     ],
     ui.column(
       [
@@ -165,9 +172,11 @@ fn new_badge_oval() {
   ui.el(
     [
       background.color(color.sky_200()),
-      ui.padding_xy(15, 10),
+      ui.padding_xy(20, 15),
       border.rounded_pct(50),
-      font.size(10),
+      font.size(11),
+      font.medium(),
+      font.letter_spacing(1.0),
     ],
     ui.text("NEW"),
   )
@@ -176,24 +185,16 @@ fn new_badge_oval() {
 fn title_and_description() {
   ui.column(
     [
-      ui.spacing(4),
+      ui.spacing(8),
     ],
     [
+      ui.el([ui.align_left(), ..fonts.heading_3()], ui.text("Memopad")),
       ui.el(
-        [
+        list.append(fonts.heading_3(), [
           ui.align_left(),
           font.medium(),
-          font.size(24),
-        ],
-        ui.text("Memopad"),
-      ),
-      ui.el(
-        [
-          ui.align_left(),
-          font.medium(),
-          font.color(color.gray_500()),
-          font.size(24),
-        ],
+          font.color(color.neutral_400()),
+        ]),
         ui.text("Our kind of waste."),
       ),
     ],
@@ -206,38 +207,24 @@ fn product_dimensions() {
       ui.spacing(4),
       ui.width(ui.fill()),
       ui.padding_each(top: 0, right: 0, bottom: 15, left: 0),
+      font.size(18),
     ],
     [
       ui.el(
         [
           ui.align_left(),
-          font.medium(),
-          font.color(color.gray_500()),
-          font.size(14),
+          font.color(color.neutral_500()),
+          font.letter_spacing(1.0),
         ],
         ui.text("Size:"),
       ),
       ui.el(
         [
           ui.align_left(),
-          font.semi_bold(),
-          font.size(14),
         ],
         ui.text("7.5 x 7.5 cm"),
       ),
     ],
-  )
-}
-
-fn divider(border_style, color) {
-  ui.el(
-    [
-      border.color(color),
-      border_style,
-      ui.width(ui.fill()),
-      border.width_each(bottom: 1, left: 0, right: 0, top: 0),
-    ],
-    ui.none,
   )
 }
 
@@ -293,88 +280,6 @@ fn sustainability_card() {
   ])
 }
 
-fn card(children) {
-  ui.column(
-    [
-      background.color(color.gray_100()),
-      border.color(colors.border()),
-      border.width(1),
-      ui.padding(14),
-      border.rounded(8),
-      ui.width(ui.fill()),
-    ],
-    children,
-  )
-}
-
-fn card_text(label) {
-  ui.el(
-    [
-      font.medium(),
-      font.size(14),
-      font.letter_spacing(0.2),
-    ],
-    ui.text(label),
-  )
-}
-
-fn button(msg, label, enabled enabled) {
-  input.button(
-    [
-      ui.padding_xy(16, 8),
-      ui.hovered(case enabled {
-        True -> [background.color(color.gray_200())]
-        False -> []
-      }),
-      ui.transition(["background"], 200),
-      border.rounded(5),
-      ..case enabled {
-        True -> []
-        False -> [
-          ui.cursor(),
-        ]
-      }
-    ],
-    on_press: case enabled {
-      True -> Some(msg)
-      False -> None
-    },
-    label: ui.el(
-      [
-        ui.center_x(),
-        ui.center_y(),
-        case list.contains(["+", "-"], label) {
-          True -> ui.move_up(1.0)
-          False -> ui.attr_none()
-        },
-      ],
-      ui.text(label),
-    ),
-  )
-}
-
-fn primary_button(msg, label) {
-  input.button(
-    [
-      ui.padding_xy(16, 8),
-      ui.hovered([background.color(color.gray_800())]),
-      background.color(color.gray_900()),
-      font.color(color.white()),
-      border.rounded(8),
-      font.size(14),
-      font.letter_spacing(0.3),
-    ],
-    on_press: Some(msg),
-    label: ui.el(
-      [
-        ui.center_x(),
-        ui.center_y(),
-      ],
-      ui.text(label),
-    ),
-  )
-}
-
 fn view_about() {
   let circle =
     ui.el(
@@ -395,8 +300,8 @@ fn view_about() {
 
   ui.column(
     [
-      ui.padding_xy(20, 0),
-      ui.width(ui.fill() |> ui.maximum(1300)),
+      ui.padding_xy(gutter_x, 0),
+      ui.width(ui.fill() |> ui.maximum(max_width)),
       ui.center_x(),
     ],
     [
@@ -425,7 +330,7 @@ fn view_about_2() {
           ui.height(ui.fill()),
         ],
         [
-          ui.paragraph([font.size(32), font.semi_bold(), ui.spacing(8)], [
+          ui.paragraph([ui.spacing(8), ..fonts.heading_2()], [
             ui.text("A miscellaneous ambassador."),
           ]),
           ui.vspace(24),
@@ -445,16 +350,16 @@ fn view_about_2() {
           ui.column(
             [
               font.size(14),
-              font.color(color.gray_800()),
+              font.color(color.neutral_800()),
               ui.spacing(14),
               ui.align_bottom(),
               ui.width(ui.fill()),
             ],
             [
               ui.text("Post-industrial waste"),
-              divider(border.dashed(), color.gray_400()),
+              divider(border.dashed(), color.neutral_400()),
               ui.text("From mishmash notebooks"),
-              divider(border.dashed(), color.gray_400()),
+              divider(border.dashed(), color.neutral_400()),
               ui.text(" Handmade in Portugal"),
             ],
           ),
@@ -466,11 +371,17 @@ fn view_about_2() {
     [
       ui.width(ui.fill()),
       background.color(color.sky_100()),
+      border.shadow(
+        color: color.neutral_100(),
+        offset: #(0, 3),
+        blur: 3,
+        size: 0,
+      ),
     ],
     ui.row(
       [
-        ui.padding_xy(20, 28),
-        ui.width(ui.fill() |> ui.maximum(1300)),
+        ui.padding_xy(gutter_x, 36),
+        ui.width(ui.fill() |> ui.maximum(max_width)),
         ui.center_x(),
         ui.spacing(20),
       ],
@@ -500,3 +411,51 @@ fn view_about_2() {
     ),
   )
 }
+
+fn view_about_3() {
+  ui.column(
+    [
+      ui.padding_xy(gutter_x, 36),
+      ui.width(ui.fill() |> ui.maximum(max_width)),
+      ui.center_x(),
+    ],
+    [
+      ui.el(fonts.heading_2(), ui.text("They're loving our products")),
+      ui.vspace(140),
+      ui.row([ui.spacing(50)], [
+        testimonial(
+          "Erika Ashford",
+          "Customer",
+          "I think you all have a super unique product that is great for students, especially in mathematics and STEM where we use so many graphs.",
+        ),
+        testimonial(
+          "Lauren Brown",
+          "Customer",
+          "Don't think I've ever entered my card details as quickly as I just did for Emma Gannon's new writing journal. What a beautiful and useful object.",
+        ),
+        testimonial(
+          "Sara Henriques",
+          "Customer",
+          "Hello, I just wanted to congratulate you on your products! I bought a Planner and I love the simplicity, design and colours! It was the first order of many!",
+        ),
+      ]),
+    ],
+  )
+}
+
+fn testimonial(name, role, quote) {
+  ui.column([ui.width(ui.fill()), font.size(24), font.medium()], [
+    ui.el([font.size(14)], ui.text(name)),
+    ui.vspace(4),
+    ui.el([font.size(14), font.color(colors.secondary_text())], ui.text(role)),
+    ui.vspace(50),
+    ui.el([font.color(colors.secondary_text())], ui.text("“")),
+    ui.vspace(4),
+    ui.paragraph([ui.spacing(10)], [
+      ui.text(quote),
+    ]),
+  ])
+}
+
+
+
