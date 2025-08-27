@@ -7,6 +7,7 @@ import legos/element as ui
 import legos/font
 import legos/input
 import mishmash/colors
+import mishmash/route
 
 pub fn divider(border_style, color) {
   ui.el(
@@ -99,5 +100,36 @@ pub fn primary_button(msg, label) {
       ],
       ui.text(label),
     ),
+  )
+}
+
+pub const max_width = 1560
+
+pub const gutter_x = 20
+
+pub fn view_header() {
+  ui.row(
+    [
+      ui.align_left(),
+      font.medium(),
+      font.size(18),
+      ui.space_evenly(),
+      ui.padding_xy(gutter_x, 25),
+      ui.width(ui.fill() |> ui.maximum(max_width)),
+      ui.center_x(),
+    ],
+    [
+      ui.row([ui.spacing(20)], [
+        ui.link([], url: route.to_path(route.Home), label: ui.text("Shop")),
+        ui.link([], url: route.to_path(route.Page2), label: ui.text("Search")),
+      ]),
+      ui.row([ui.spacing(20)], [
+        ui.link(
+          [font.semi_bold()],
+          url: route.to_path(route.Home),
+          label: ui.text("Sign In"),
+        ),
+      ]),
+    ],
   )
 }
