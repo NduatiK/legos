@@ -53,8 +53,8 @@ pub fn merge(field1: Field, field2: Field) -> Field {
 
 pub fn flag(i: Int) -> Flag {
   case i > 31 {
-    True -> Second(int.bitwise_shift_left(i - 32, 1))
-    False -> First(int.bitwise_shift_left(i, 1))
+    True -> Second(int.bitwise_shift_left(1, i - 32))
+    False -> First(int.bitwise_shift_left(1, i))
   }
 }
 
@@ -249,4 +249,8 @@ pub fn height_text_area_content() {
 
 pub fn font_variant() {
   flag(48)
+}
+
+pub fn transition() {
+  flag(49)
 }

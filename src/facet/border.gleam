@@ -5,6 +5,9 @@ import facet/internal/style
 import gleam/int
 import gleam/pair
 
+pub type Shadow =
+  internal.Shadow
+
 pub fn color(clr: Color) {
   internal.StyleClass(
     flag.border_color(),
@@ -27,7 +30,7 @@ pub fn width_xy(x: Int, y: Int) {
   internal.StyleClass(
     flag.border_width(),
     internal.BorderWidth(
-      "b-" <> int.to_string(x) <> "-" <> int.to_string(y),
+      "bw-" <> int.to_string(x) <> "-" <> int.to_string(y),
       y,
       x,
       y,
@@ -36,12 +39,12 @@ pub fn width_xy(x: Int, y: Int) {
   )
 }
 
-pub type Widths {
-  Widths(bottom: Int, left: Int, right: Int, top: Int)
-}
-
-pub fn width_each(w: Widths) {
-  let Widths(bottom:, left:, right:, top:) = w
+pub fn width_each(
+  bottom bottom: Int,
+  left left: Int,
+  right right: Int,
+  top top: Int,
+) {
   case top == bottom && left == right {
     True ->
       case top == right {
@@ -52,7 +55,7 @@ pub fn width_each(w: Widths) {
       internal.StyleClass(
         flag.border_width(),
         internal.BorderWidth(
-          "b-"
+          "bw-"
             <> int.to_string(top)
             <> "-"
             <> int.to_string(right)
@@ -92,6 +95,17 @@ pub fn rounded(radius: Int) {
   )
 }
 
+pub fn rounded_pct(radius: Int) {
+  internal.StyleClass(
+    flag.border_round(),
+    internal.Single(
+      "br-" <> int.to_string(radius) <> "-pct",
+      "border-radius",
+      int.to_string(radius) <> "%",
+    ),
+  )
+}
+
 pub fn round_each(
   top_left: Int,
   top_right: Int,
@@ -122,16 +136,21 @@ pub fn round_each(
   )
 }
 
-pub fn shadow(almost_shade: internal.Shadow) {
+pub fn shadow(
+  color color: Color,
+  offset offset: #(Int, Int),
+  blur blur: Int,
+  size size: Int,
+) {
   let shade =
     internal.InsetShadow(
       inset: False,
-      offset: almost_shade.offset
+      offset: offset
         |> pair.map_first(int.to_float)
         |> pair.map_second(int.to_float),
-      size: int.to_float(almost_shade.size),
-      blur: int.to_float(almost_shade.blur),
-      color: almost_shade.color,
+      size: int.to_float(size),
+      blur: int.to_float(blur),
+      color: color,
     )
 
   internal.StyleClass(

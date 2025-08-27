@@ -71,7 +71,7 @@ pub type Style {
   FontFamily(String, List(Font))
   FontSize(Int)
 
-  // // classname, prop, value
+  // classname, prop, value
   Single(classname: String, prop: String, value: String)
   Colored(String, String, Color)
   SpacingStyle(String, Int, Int)
@@ -228,6 +228,8 @@ pub type Length {
   Px(Int)
   Content
   Fill(Int)
+  Pct(Int)
+  ScreenPct(Int)
   Min(Int, Length)
   Max(Int, Length)
 }
@@ -248,8 +250,8 @@ pub type Location {
 }
 
 pub type Color {
-  Rgba(Float, Float, Float, Float)
-  Oklch(Float, Float, Float)
+  Rgba(r: Float, g: Float, b: Float, a: Float)
+  Oklch(l: Float, c: Float, h: Float, alpha: Float)
 }
 
 pub type NodeName {
@@ -912,19 +914,41 @@ fn gather_attr_recursive(
             False ->
               case width {
                 Px(px) -> {
-                  let class_name =
-                    style.classes_width_exact
-                    <> " width-px-"
-                    <> int.to_string(px)
-
-                  let style_item =
-                    Single(
-                      "width-px-" <> int.to_string(px),
-                      "width",
-                      int.to_string(px) <> "px",
-                    )
+                  let val = int.to_string(px) <> "px"
+                  let name = "width-px-" <> int.to_string(px)
+                  let style_item = Single(name, "width", val)
                   gather_attr_recursive(
-                    class_name <> " " <> classes,
+                    style.classes_width_exact <> " " <> name <> " " <> classes,
+                    node,
+                    flag.add(has, flag.width()),
+                    transform,
+                    [style_item, ..styles],
+                    attrs,
+                    children,
+                    remaining,
+                  )
+                }
+                Pct(pct) -> {
+                  let val = int.to_string(pct)
+                  let name = "width-pct-" <> val
+                  let style_item = Single(name, "width", val <> "%")
+                  gather_attr_recursive(
+                    style.classes_width_exact <> " " <> name <> " " <> classes,
+                    node,
+                    flag.add(has, flag.width()),
+                    transform,
+                    [style_item, ..styles],
+                    attrs,
+                    children,
+                    remaining,
+                  )
+                }
+                ScreenPct(pct) -> {
+                  let val = int.to_string(pct)
+                  let name = "width-spct-" <> val
+                  let style_item = Single(name, "width", val <> "svw")
+                  gather_attr_recursive(
+                    style.classes_width_exact <> " " <> name <> " " <> classes,
                     node,
                     flag.add(has, flag.width()),
                     transform,
@@ -1030,9 +1054,39 @@ fn gather_attr_recursive(
             False ->
               case height {
                 Px(px) -> {
-                  let val = int.to_string(px) <> "px"
+                  let val = int.to_string(px)
                   let name = "height-px-" <> val
-                  let style_item = Single(name, "height", val)
+                  let style_item = Single(name, "height", val <> "px")
+                  gather_attr_recursive(
+                    style.classes_height_exact <> " " <> name <> " " <> classes,
+                    node,
+                    flag.add(has, flag.height()),
+                    transform,
+                    [style_item, ..styles],
+                    attrs,
+                    children,
+                    remaining,
+                  )
+                }
+                Pct(pct) -> {
+                  let val = int.to_string(pct)
+                  let name = "height-pct-" <> val
+                  let style_item = Single(name, "height", val <> "%")
+                  gather_attr_recursive(
+                    style.classes_height_exact <> " " <> name <> " " <> classes,
+                    node,
+                    flag.add(has, flag.height()),
+                    transform,
+                    [style_item, ..styles],
+                    attrs,
+                    children,
+                    remaining,
+                  )
+                }
+                ScreenPct(pct) -> {
+                  let val = int.to_string(pct)
+                  let name = "height-spct-" <> val
+                  let style_item = Single(name, "height", val <> "svh")
                   gather_attr_recursive(
                     style.classes_height_exact <> " " <> name <> " " <> classes,
                     node,
@@ -1062,7 +1116,7 @@ fn gather_attr_recursive(
                   case portion == 1 {
                     True ->
                       gather_attr_recursive(
-                        echo { style.classes_height_fill <> " " <> classes },
+                        { style.classes_height_fill <> " " <> classes },
                         node,
                         has
                           |> flag.add(flag.height_fill())
@@ -1489,14 +1543,34 @@ fn nearby_element(location: Location, elem: Element(msg)) -> LustreElement(msg) 
 
 fn render_width(w: Length) -> #(flag.Field, String, List(Style)) {
   case w {
-    Px(px) -> #(
+    Px(px) -> {
+      let val = int.to_string(px)
+      let name = "width-px-" <> val
+      #(flag.none, style.classes_width_exact <> " " <> name, [
+        Single(name, "width", val <> "px"),
+      ])
+    }
+
+    Pct(pct) -> #(
       flag.none,
-      style.classes_width_exact <> " width-px-" <> int.to_string(px),
+      style.classes_width_exact <> " width-pct-" <> int.to_string(pct),
       [
         Single(
-          "width-px-" <> int.to_string(px),
+          "width-pct-" <> int.to_string(pct),
           "width",
-          int.to_string(px) <> "px",
+          int.to_string(pct) <> "%",
+        ),
+      ],
+    )
+
+    ScreenPct(pct) -> #(
+      flag.none,
+      style.classes_width_exact <> " width-spct-" <> int.to_string(pct),
+      [
+        Single(
+          "width-spct-" <> int.to_string(pct),
+          "width",
+          int.to_string(pct) <> "svw",
         ),
       ],
     )
@@ -1567,6 +1641,21 @@ fn render_height(h: Length) -> #(flag.Field, String, List(Style)) {
       let name = "height-px-" <> val
       #(flag.none, style.classes_height_exact <> " " <> name, [
         Single(name, "height", val <> "px"),
+      ])
+    }
+
+    Pct(pct) -> {
+      let val = int.to_string(pct)
+      let name = "height-pct-" <> val
+      #(flag.none, style.classes_height_exact <> " " <> name, [
+        Single(name, "height", val <> "%"),
+      ])
+    }
+    ScreenPct(pct) -> {
+      let val = int.to_string(pct)
+      let name = "height-spct-" <> val
+      #(flag.none, style.classes_height_exact <> " " <> name, [
+        Single(name, "height", val <> "svh"),
       ])
     }
 
@@ -2072,7 +2161,7 @@ pub fn get_width(attrs: List(Attribute(aligned, msg))) -> Option(Length) {
   })
 }
 
-fn get_height(attrs: List(Attribute(aligned, msg))) -> Option(Length) {
+pub fn get_height(attrs: List(Attribute(aligned, msg))) -> Option(Length) {
   case
     list.fold_right(attrs, None, fn(acc, attr) {
       case acc {
@@ -2150,7 +2239,7 @@ pub fn render_root(
     NoStaticStyleSheet -> OnlyDynamic(options, _)
     _ -> StaticRootAndDynamic(options, _)
   }
-  as_el()
+  AsEl
   |> element(div, attributes, Unkeyed([child]))
   |> to_html(embed_style)
 }
@@ -2747,6 +2836,9 @@ fn render_style(
 fn to_grid_length_helper(minimum, maximum, x) {
   case x {
     Px(px) -> int.to_string(px) <> "px"
+    Pct(pct) -> int.to_string(pct) <> "%"
+    // Can't do grid stuff here
+    ScreenPct(pct) -> int.to_string(pct) <> "%"
 
     Content -> {
       case minimum, maximum {
@@ -2776,7 +2868,7 @@ fn to_grid_length_helper(minimum, maximum, x) {
           <> int.to_string(min_size)
           <> "px, "
           <> int.to_string(i)
-          <> "frfr)"
+          <> "fr)"
 
         None, Some(max_size) ->
           "minmax(max-content, " <> int.to_string(max_size) <> "px)"
@@ -3126,6 +3218,9 @@ fn length_class_name(len: Length) -> String {
     Px(px) -> int.to_string(px) <> "px"
     Content -> "auto"
     Fill(i) -> int.to_string(i) <> "fr"
+    Pct(i) -> int.to_string(i) <> "%"
+    // cant do screen stuff here
+    ScreenPct(i) -> int.to_string(i) <> "%"
     Min(min, l) -> "min" <> int.to_string(min) <> length_class_name(l)
     Max(max, l) -> "max" <> int.to_string(max) <> length_class_name(l)
   }
@@ -3216,13 +3311,15 @@ pub fn format_color(color: Color) -> String {
 
       "rgba(" <> r <> "," <> g <> "," <> b <> "," <> a <> ")"
     }
-    Oklch(a, b, c) ->
+    Oklch(l, c, h, alpha) ->
       "oklch("
-      <> float.to_string(a)
-      <> " "
-      <> float.to_string(b)
+      <> float.to_string(l)
       <> " "
       <> float.to_string(c)
+      <> " "
+      <> float.to_string(h)
+      <> " / "
+      <> float.to_string(alpha)
       <> ")"
   }
 }
@@ -3238,13 +3335,15 @@ pub fn format_color_class(color: Color) -> String {
       <> "-"
       <> float_class(alpha)
     }
-    Oklch(a, b, c) -> {
+    Oklch(a, b, c, alpha) -> {
       "oklch-"
-      <> float_class(a)
+      <> int.to_string(float.round(a *. 1000.0))
       <> "-"
-      <> float_class(b)
+      <> int.to_string(float.round(b *. 1000.0))
       <> "-"
-      <> float_class(c)
+      <> int.to_string(float.round(c *. 1000.0))
+      <> "-"
+      <> float_class(alpha)
     }
   }
 }
@@ -3346,32 +3445,6 @@ pub fn get_style_name(style: Style) -> String {
       }
     }
   }
-}
-
-// {- Constants -}
-
-pub fn as_grid() {
-  AsGrid
-}
-
-pub fn as_row() {
-  AsRow
-}
-
-pub fn as_column() {
-  AsColumn
-}
-
-pub fn as_el() {
-  AsEl
-}
-
-pub fn as_paragraph() {
-  AsParagraph
-}
-
-pub fn as_text_column() {
-  AsTextColumn
 }
 
 // {- Mapping -}
@@ -3482,7 +3555,7 @@ fn map_html_attr(html_attr, fn_) {
   }
 }
 
-pub fn unwrap_decorations(attrs: List(Attribute(Never, Never))) -> List(Style) {
+pub fn unwrap_decorations(attrs: List(Attribute(a, b))) -> List(Style) {
   case list.fold(attrs, #([], untransformed()), unwrap_decs_helper) {
     #(styles, transform) -> list.append([Transform(transform)], styles)
   }
@@ -3490,10 +3563,10 @@ pub fn unwrap_decorations(attrs: List(Attribute(Never, Never))) -> List(Style) {
 
 fn unwrap_decs_helper(
   acc: #(List(Style), Transformation),
-  attr: Attribute(Never, Never),
+  attr: Attribute(a, b),
 ) -> #(List(Style), Transformation) {
   let #(styles, trans) = acc
-  case remove_never(attr) {
+  case attr {
     StyleClass(_, style) -> #(list.append([style], styles), trans)
 
     TransformComponent(flag, component) -> #(
@@ -3503,13 +3576,6 @@ fn unwrap_decs_helper(
 
     _ -> #(styles, trans)
   }
-}
-
-pub type Never
-
-fn remove_never(style: Attribute(Never, Never)) -> Attribute(a, msg) {
-  todo
-  // map_attr_from_style(fn(Never, style)
 }
 
 pub fn tag(label: String, style: Style) -> Style {

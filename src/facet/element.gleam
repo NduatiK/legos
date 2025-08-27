@@ -1,5 +1,5 @@
 import facet/internal/flag
-import facet/internal/model.{type FocusStyle}
+import facet/internal/model
 import facet/internal/style
 import gleam/float
 import gleam/int
@@ -14,6 +14,12 @@ import lustre/vdom/vnode
 pub type Color =
   model.Color
 
+pub type Shadow =
+  model.Shadow
+
+pub type FocusStyle =
+  model.FocusStyle
+
 pub type Element(msg) =
   model.Element(msg)
 
@@ -23,24 +29,26 @@ pub type Attribute(msg) =
 pub type Attr(decorative, msg) =
   model.Attribute(decorative, msg)
 
-pub type Decoration =
-  model.Attribute(model.Never, model.Never)
+pub type Decoration(a, b) =
+  model.Attribute(a, b)
 
+/// Render a Lustre element with facet
 pub fn html(a: fn(model.LayoutContext) -> vnode.Element(e)) -> Element(e) {
   model.Unstyled(a)
 }
 
+/// Render a Lustre attribute with facet
 pub fn html_attribute(a: vattr.Attribute(c)) -> Attr(d, c) {
   model.Attr(a)
 }
 
-pub fn map(transform: fn(a) -> b, element: Element(a)) -> Element(b) {
+pub fn map(element: Element(a), transform: fn(a) -> b) -> Element(b) {
   model.map(element, transform)
 }
 
 pub fn map_attribute(
-  transform: fn(a) -> b,
   attribute: Attribute(a),
+  transform: fn(a) -> b,
 ) -> Attribute(b) {
   model.map_attr(attribute, transform)
 }
@@ -61,6 +69,11 @@ pub fn fill() -> Length {
   model.Fill(1)
 }
 
+/// Fill a percent of the safe-viewport size
+pub fn pct_screen(pct: Int) -> Length {
+  model.ScreenPct(pct)
+}
+
 pub fn minimum(length: Length, min_length: Int) -> Length {
   model.Min(min_length, length)
 }
@@ -71,6 +84,10 @@ pub fn maximum(length: Length, max_length: Int) -> Length {
 
 pub fn fill_portion(portion: Int) -> Length {
   model.Fill(portion)
+}
+
+pub fn pct(portion: Int) -> Length {
+  model.Pct(portion)
 }
 
 // Layout functions
@@ -118,8 +135,8 @@ pub fn default_focus() -> FocusStyle {
   model.focus_default_style
 }
 
-pub fn focus_style(focus: FocusStyle) -> Opt {
-  model.FocusStyleOption(focus)
+pub fn focus_style(style: FocusStyle) -> Opt {
+  model.FocusStyleOption(style)
 }
 
 pub fn no_hover() -> Opt {
@@ -131,9 +148,7 @@ pub fn force_hover() -> Opt {
 }
 
 // Basic elements
-pub fn none() -> Element(msg) {
-  model.Empty
-}
+pub const none = model.Empty
 
 pub fn text(content: String) -> Element(msg) {
   model.Text(content)
@@ -193,7 +208,7 @@ pub fn wrapped_row(
   case spaced {
     None ->
       model.element(
-        model.as_row(),
+        model.AsRow,
         model.div,
         list.flatten([
           [
@@ -245,7 +260,7 @@ pub fn wrapped_row(
       case new_padding {
         Some(pad) ->
           model.element(
-            model.as_row(),
+            model.AsRow,
             model.div,
             list.flatten([
               [
@@ -268,12 +283,12 @@ pub fn wrapped_row(
           let half_x = 0.0 -. { int.to_float(x) /. 2.0 }
           let half_y = 0.0 -. { int.to_float(y) /. 2.0 }
           model.element(
-            model.as_el(),
+            model.AsEl,
             model.div,
             attrs,
             model.Unkeyed([
               model.element(
-                model.as_row(),
+                model.AsRow,
                 model.div,
                 list.flatten([
                   [
@@ -330,7 +345,7 @@ pub fn paragraph(
   )
 }
 
-pub fn text_column(
+pub fn prose(
   attributes: List(Attribute(msg)),
   children: List(Element(msg)),
 ) -> Element(msg) {
@@ -352,220 +367,264 @@ pub fn text_column(
 }
 
 // Table types and functions
-pub type Column(data, msg) {
-  Column(header: Element(msg), width: Length, view: fn(data) -> Element(msg))
+pub type TableColumn(data, msg) {
+  TableColumn(
+    //
+    header: Element(msg),
+    width: Length,
+    view: fn(data) -> Element(msg),
+  )
 }
 
-// pub fn table(
-//   attributes: List(Attribute(msg)),
-//   config: TableConfig(data, msg),
-// ) -> Element(msg) {
-//   table_helper(config.data, config.columns, attributes)
-// }
+pub type IndexedColumn(data, msg) {
+  IndexedColumn(
+    header: Element(msg),
+    width: Length,
+    view: fn(Int, data) -> Element(msg),
+  )
+}
 
-// pub type IndexedColumn(data, msg) {
-//   IndexedColumn(
-//     header: Element(msg),
-//     width: Length,
-//     view: fn(Int, data) -> Element(msg),
-//   )
-// }
+type InternalTableColumn(record, msg) {
+  InternalIndexedColumn(IndexedColumn(record, msg))
+  InternalColumn(TableColumn(record, msg))
+}
 
-// pub fn indexed_table(
-//   attributes: List(Attribute(msg)),
-//   config: IndexedTableConfig(data, msg),
-// ) -> Element(msg) {
-//   indexed_table_helper(config.data, config.columns, attributes)
-// }
+/// Show some tabular data.
+///
+/// Start with a list of records and specify how each column should be rendered.
+///
+/// So, if we have a list of `persons`:
+///
+///     type Person {
+///       Person(first_name: String, last_name: String)
+///     }
+///
+///     let persons = [
+///       Person("David", "Bowie"),
+///       Person("Florence", "Welch"),
+///     ]
+///
+/// We could render it using
+///
+///     table([],
+///         data: persons,
+///         columns: [
+///           Column(
+///             header: Element.text("First Name"),
+///             width: fill(),
+///             view: fn(person) { Element.text(person.first_name) },
+///           ),
+///           Column(
+///             header: Element.text("Last Name"),
+///             width: fill(),
+///             view: fn(person) { Element.text(person.last_name) },
+///           ),
+///         ]),
+///
+/// **Note:** Sometimes you might not have a list of records directly in your model. In this case it can be really nice to write a function that transforms some part of your model into a list of records before feeding it into `Element.table`.
+pub fn table(
+  attrs: List(Attribute(msg)),
+  data data: List(data),
+  columns columns: List(TableColumn(data, msg)),
+) -> Element(msg) {
+  table_helper(attrs, data, list.map(columns, InternalColumn))
+}
 
-// pub type TableConfig(data, msg) {
-//   TableConfig(data: List(data), columns: List(Column(data, msg)))
-// }
+pub fn indexed_table(
+  attributes: List(Attribute(msg)),
+  data data: List(data),
+  columns columns: List(IndexedColumn(data, msg)),
+) -> Element(msg) {
+  table_helper(attributes, data, list.map(columns, InternalIndexedColumn))
+}
 
-// pub type IndexedTableConfig(data, msg) {
-//   IndexedTableConfig(data: List(data), columns: List(IndexedColumn(data, msg)))
-// }
+type Cursor(a) {
+  Cursor(elements: List(a), row: Int, column: Int)
+}
 
-// // fn table_helper(
-// //   data: List(data),
-// //   columns: List(Column(data, msg)),
-// //   attributes: List(Attribute(msg)),
-// // ) -> Element(msg) {
-// //   el(attributes, text("Table implementation needed"))
-// // }
-// //
+fn table_helper(
+  attrs: List(Attribute(msg)),
+  data: List(data),
+  columns: List(InternalTableColumn(data, msg)),
+) -> Element(msg) {
+  let #(s_x, s_y) = model.get_spacing(attrs, #(0, 0))
 
-// type Cursor(a) {
-//   Cursor(elements: List(a), row: Int, column: Int)
-// }
+  let column_header = fn(col) {
+    case col {
+      InternalIndexedColumn(col_config) -> col_config.header
+      InternalColumn(col_config) -> col_config.header
+    }
+  }
 
-// pub fn table_helper(
-//   attrs: List(Attribute(msg)),
-//   config: InternalTable(data, msg),
-// ) -> Element(msg) {
-//   let #(s_x, s_y) = model.get_spacing(attrs, #(0, 0))
+  let column_width = fn(col) {
+    case col {
+      InternalIndexedColumn(col_config) -> col_config.width
+      InternalColumn(col_config) -> col_config.width
+    }
+  }
 
-//   let column_header = fn(col) {
-//     case col {
-//       InternalIndexedColumn(col_config) -> col_config.header
-//       InternalColumn(col_config) -> col_config.header
-//     }
-//   }
+  let on_grid = fn(row_level, column_level, elem) {
+    model.element(
+      model.AsEl,
+      model.div,
+      [
+        model.StyleClass(
+          flag.grid_position(),
+          model.GridPosition(
+            row: row_level,
+            col: column_level,
+            width: 1,
+            height: 1,
+          ),
+        ),
+      ],
+      model.Unkeyed([elem]),
+    )
+  }
+  let maybe_headers =
+    columns
+    |> list.map(column_header)
+    |> fn(headers) {
+      case list.all(headers, fn(a) { a == model.Empty }) {
+        True -> None
+        False ->
+          Some(
+            list.index_map(headers, fn(header, col) {
+              on_grid(1, col + 1, header)
+            }),
+          )
+      }
+    }
 
-//   let column_width = fn(col) {
-//     case col {
-//       InternalIndexedColumn(col_config) -> col_config.width
-//       InternalColumn(col_config) -> col_config.width
-//     }
-//   }
+  let template =
+    model.StyleClass(
+      flag.grid_template(),
+      model.GridTemplateStyle(
+        spacing: #(px(s_x), px(s_y)),
+        columns: list.map(columns, column_width),
+        rows: list.repeat(model.Content, list.length(data)),
+      ),
+    )
 
-//   let on_grid = fn(row_level, column_level, elem) {
-//     model.element(
-//       model.as_el(),
-//       model.div,
-//       [
-//         model.StyleClass(
-//           flag.gridPosition(),
-//           model.GridPosition(
-//             row: row_level,
-//             col: column_level,
-//             width: 1,
-//             height: 1,
-//           ),
-//         ),
-//       ],
-//       model.Unkeyed([elem]),
-//     )
-//   }
-//   let maybe_headers =
-//     column_header(config.columns)
-//     |> List.map(column_header)
-//     |> fn(headers) {
-//       case List.all(headers, fn(a) { a == model.Empty }) {
-//         True -> None
-//         False ->
-//           Some(list.index_map(
-//             fn(header, col) { on_grid(1, col + 1, header) },
-//             headers,
-//           ))
-//       }
-//     }
+  let add = fn(cell, column_config, cursor) {
+    case column_config {
+      InternalIndexedColumn(col) -> {
+        Cursor(
+          ..cursor,
+          elements: [
+            on_grid(
+              cursor.row,
+              cursor.column,
+              col.view(
+                case maybe_headers == None {
+                  True -> cursor.row - 1
+                  False -> cursor.row - 2
+                },
+                cell,
+              ),
+            ),
+            ..cursor.elements
+          ],
+          column: cursor.column + 1,
+        )
+      }
+      InternalColumn(col) -> {
+        Cursor(
+          ..cursor,
+          elements: [
+            on_grid(cursor.row, cursor.column, col.view(cell)),
+            ..cursor.elements
+          ],
+          column: cursor.column + 1,
+        )
+      }
+    }
+  }
 
-//   let template =
-//     model.StyleClass(
-//       flag.gridTemplate(),
-//       model.GridTemplateStyle(
-//         spacing: #(px(s_x), px(s_y)),
-//         columns: list.map(config.columns, column_width),
-//         rows: list.repeat(model.Content, list.length(config.data)),
-//       ),
-//     )
+  let build = fn(columns) {
+    fn(cursor: Cursor(Element(msg)), row_data: data) -> Cursor(Element(msg)) {
+      let new_cursor =
+        list.fold(columns, cursor, fn(cursor, column) {
+          add(row_data, column, cursor)
+        })
+      Cursor(elements: new_cursor.elements, row: cursor.row + 1, column: 1)
+    }
+  }
+  let starting_row = case maybe_headers == None {
+    True -> 1
+    False -> 2
+  }
 
-//   let add = fn(cell, columnConfig, cursor) {
-//     case columnConfig {
-//       InternalIndexedColumn(col) -> {
-//         Cursor(
-//           ..cursor,
-//           elements: [
-//             on_grid(
-//               cursor.row,
-//               cursor.column,
-//               col.view(
-//                 case maybe_headers == None {
-//                   True -> cursor.row - 1
-//                   False -> cursor.row - 2
-//                 },
-//                 cell,
-//               ),
-//             ),
-//             ..cursor.elements
-//           ],
-//           column: cursor.column + 1,
-//         )
-//       }
-//       InternalColumn(col) -> {
-//         Cursor(
-//           ..cursor,
-//           elements: [
-//             on_grid(cursor.row, cursor.column, col.view(cell)),
-//             ..cursor.elements
-//           ],
-//           column: cursor.column + 1,
-//         )
-//       }
-//     }
-//   }
+  let children =
+    list.fold(
+      data,
+      Cursor(elements: [], row: starting_row, column: 1),
+      build(columns),
+    )
 
-//   let build = fn(columns) {
-//     fn(row_data, cursor) {
-//       let new_cursor =
-//         list.fold(columns, cursor, fn(a, b) { add(row_data, a, b) })
-//       Cursor(..new_cursor, row: new_cursor.row + 1, column: 1)
-//     }
-//   }
-//   let starting_row = case maybe_headers == None {
-//     True -> 1
-//     False -> 2
-//   }
+  model.element(
+    model.AsGrid,
+    model.div,
+    list.append([width(fill()), template], attrs),
+    model.Unkeyed(case maybe_headers {
+      None -> children.elements
+      Some(rendered_headers) ->
+        list.append(rendered_headers, list.reverse(children.elements))
+    }),
+  )
+}
 
-//   let children =
-//     list.fold(
-//       config.data,
-//       Cursor(elements: [], row: starting_row, column: 1),
-//       build(config.columns),
-//     )
+/// Both a source and a description are required for images.
+///
+/// The description is used for people using screen readers.
+///
+/// Leaving the description blank will cause the image to be ignored by assistive technology. This can make sense for images that are purely decorative and add no additional information.
+///
+/// So, take a moment to describe your image as you would to someone who has a harder time seeing.
+pub fn image(
+  attributes: List(Attribute(msg)),
+  src src: String,
+  description description: String,
+) -> Element(msg) {
+  let image_attributes =
+    list.filter(attributes, fn(a) {
+      case a {
+        model.Width(_) -> True
+        model.Height(_) -> True
+        _ -> False
+      }
+    })
 
-//   model.element(
-//     model.asGrid,
-//     model.div,
-//     list.append([width(fill()), template], attrs),
-//     model.Unkeyed(case maybe_headers {
-//       None -> children.elements
-//       Some(renderedHeaders) ->
-//         list.append(renderedHeaders, list.reverse(children.elements))
-//     }),
-//   )
-// }
-
-// fn indexed_table_helper(
-//   data: List(data),
-//   columns: List(IndexedColumn(data, msg)),
-//   attributes: List(Attribute(msg)),
-// ) -> Element(msg) {
-//   el(attributes, text("Indexed table implementation needed"))
-// }
-
-// // Image and link functions
-// pub fn image(
-//   attributes: List(Attribute(msg)),
-//   config: ImageConfig,
-// ) -> Element(msg) {
-//   model.element(
-//     model.AsEl,
-//     model.NodeName("img"),
-//     list.append(
-//       [model.Attr("src", config.src), model.Attr("alt", config.description)],
-//       attributes,
-//     ),
-//     model.Unkeyed([]),
-//   )
-// }
-
-// pub type ImageConfig {
-//   ImageConfig(src: String, description: String)
-// }
+  model.element(
+    model.AsEl,
+    model.div,
+    [model.html_class(style.classes_image_container), ..attributes],
+    model.Unkeyed([
+      model.element(
+        model.AsEl,
+        model.NodeName("img"),
+        [
+          model.Attr(attr.src(src)),
+          model.Attr(attr.alt(description)),
+          ..image_attributes
+        ],
+        model.Unkeyed([]),
+      ),
+    ]),
+  )
+}
 
 pub fn link(
   attributes: List(Attribute(msg)),
-  config: LinkConfig(msg),
+  url url: String,
+  label label: Element(msg),
 ) -> Element(msg) {
   model.element(
     model.AsEl,
     model.NodeName("a"),
-    // list.append([], attributes),
     list.append(
       [
-        model.Attr(attr.href(config.url)),
+        model.Attr(attr.href(url)),
         model.Attr(attr.rel("noopener noreferrer")),
         width(shrink()),
         height(shrink()),
@@ -579,20 +638,21 @@ pub fn link(
       ],
       attributes,
     ),
-    model.Unkeyed([config.label]),
+    model.Unkeyed([label]),
   )
 }
 
 pub fn new_tab_link(
   attributes: List(Attribute(msg)),
-  config: LinkConfig(msg),
+  url url: String,
+  label label: Element(msg),
 ) -> Element(msg) {
   model.element(
     model.AsEl,
     model.NodeName("a"),
     list.append(
       [
-        model.Attr(attr.href(config.url)),
+        model.Attr(attr.href(url)),
         model.Attr(attr.rel("noopener noreferrer")),
         model.Attr(attr.target("_blank")),
         width(shrink()),
@@ -607,17 +667,17 @@ pub fn new_tab_link(
       ],
       attributes,
     ),
-    model.Unkeyed([config.label]),
+    model.Unkeyed([label]),
   )
-}
-
-pub type LinkConfig(msg) {
-  LinkConfig(url: String, label: Element(msg))
 }
 
 // Nearby elements
 pub fn below(element: Element(msg)) -> Attribute(msg) {
   model.Nearby(model.Below, element)
+}
+
+pub fn attr_none() -> Attribute(msg) {
+  model.NoAttribute
 }
 
 pub fn above(element: Element(msg)) -> Attribute(msg) {
@@ -684,35 +744,71 @@ pub fn padding(pixels: Int) -> Attribute(msg) {
 }
 
 pub fn padding_xy(x: Int, y: Int) -> Attribute(msg) {
-  let x_float = int.to_float(x)
-  let y_float = int.to_float(y)
-  model.StyleClass(
-    flag.padding(),
-    model.PaddingStyle(
-      "p-" <> int.to_string(x) <> "-" <> int.to_string(y),
-      y_float,
-      x_float,
-      y_float,
-      x_float,
-    ),
-  )
+  case x == y {
+    True -> padding(x)
+    False -> {
+      let x_float = int.to_float(x)
+      let y_float = int.to_float(y)
+      model.StyleClass(
+        flag.padding(),
+        model.PaddingStyle(
+          "p-" <> int.to_string(x) <> "-" <> int.to_string(y),
+          y_float,
+          x_float,
+          y_float,
+          x_float,
+        ),
+      )
+    }
+  }
 }
 
-pub fn padding_each(config: PaddingConfig) -> Attribute(msg) {
-  model.StyleClass(
-    flag.padding(),
-    model.PaddingStyle(
-      model.padding_name(config.top, config.right, config.bottom, config.left),
-      int.to_float(config.top),
-      int.to_float(config.right),
-      int.to_float(config.bottom),
-      int.to_float(config.left),
-    ),
-  )
-}
+/// If you find yourself defining unique paddings all the time, you might consider defining
+///
+///     edges =
+///         (
+///             top: 0,
+///             right: 0,
+///             bottom: 0,
+///             left: 0,
+///         )
+///
+/// And then just do
+///
+///     paddingEach(edges |> { .._, right: 5 })
+pub fn padding_each(
+  top top: Int,
+  right right: Int,
+  bottom bottom: Int,
+  left left: Int,
+) -> Attribute(msg) {
+  case top == right && top == bottom && top == left {
+    True -> {
+      let top_float = int.to_float(top)
 
-pub type PaddingConfig {
-  PaddingConfig(top: Int, right: Int, bottom: Int, left: Int)
+      model.StyleClass(
+        flag.padding(),
+        model.PaddingStyle(
+          "p-" <> int.to_string(top),
+          top_float,
+          top_float,
+          top_float,
+          top_float,
+        ),
+      )
+    }
+    False ->
+      model.StyleClass(
+        flag.padding(),
+        model.PaddingStyle(
+          model.padding_name(top, right, bottom, left),
+          int.to_float(top),
+          int.to_float(right),
+          int.to_float(bottom),
+          int.to_float(left),
+        ),
+      )
+  }
 }
 
 // Alignment
@@ -759,6 +855,20 @@ pub fn spacing_xy(x: Int, y: Int) -> Attribute(msg) {
   )
 }
 
+pub fn transition(properties, duration_ms) -> Attribute(msg) {
+  model.StyleClass(
+    flag.transition(),
+    model.Single(
+      "transition-"
+        <> string.join(properties, "-")
+        <> "-"
+        <> int.to_string(duration_ms),
+      "transition",
+      string.join(properties, ", ") <> " " <> int.to_string(duration_ms) <> "ms",
+    ),
+  )
+}
+
 // Transparency and opacity
 pub fn transparent(is_transparent: Bool) -> Attribute(msg) {
   case is_transparent {
@@ -766,10 +876,6 @@ pub fn transparent(is_transparent: Bool) -> Attribute(msg) {
     False -> alpha(1.0)
   }
 }
-
-// pub fn alpha(opacity: Float) -> Attribute(msg) {
-//   model.StyleClass(flag.transparency(), model.Transparency(opacity))
-// }
 
 pub fn alpha(o: Float) -> Attribute(msg) {
   let transparency =
@@ -780,7 +886,6 @@ pub fn alpha(o: Float) -> Attribute(msg) {
 
   model.StyleClass(
     flag.transparency(),
-    // TODO: Look into this
     model.Transparency("transparency-" <> model.float_class(o), transparency),
   )
 }
@@ -813,6 +918,10 @@ pub fn clip_x() -> Attribute(msg) {
 // Pointer and cursor
 pub fn pointer() -> Attribute(msg) {
   model.Class(flag.cursor(), style.classes_cursor_pointer)
+}
+
+pub fn cursor() -> Attribute(msg) {
+  model.Class(flag.cursor(), style.classes_cursor_text)
 }
 
 // Device classification
@@ -887,7 +996,22 @@ pub fn focused(decs) -> Attribute(msg) {
   )
 }
 
+pub fn hovered(decs) -> Attribute(msg) {
+  model.StyleClass(
+    flag.hover(),
+    model.PseudoSelector(model.Hover, model.unwrap_decorations(decs)),
+  )
+}
+
 // HTML integration
+
+pub fn vspace(height_: Int) -> Element(g) {
+  el([width(fill()), height(px(height_))], none)
+}
+
+pub fn hspace(width_: Int) -> Element(f) {
+  el([height(fill()), width(px(width_))], none)
+}
 
 // Placeholder types for HTML integration (would need proper HTML library)
 pub type Html(msg)

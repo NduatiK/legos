@@ -20,7 +20,7 @@ pub fn el(
   child: #(String, Element(msg)),
 ) -> Element(msg) {
   internal.element(
-    internal.as_el(),
+    internal.AsEl,
     internal.div,
     [width(shrink()), height(shrink()), ..attrs],
     internal.Keyed([child]),
@@ -34,7 +34,7 @@ pub fn row(
   children: List(#(String, Element(msg))),
 ) -> Element(msg) {
   internal.element(
-    internal.as_row(),
+    internal.AsRow,
     internal.div,
     [
       internal.html_class(
@@ -55,7 +55,7 @@ pub fn column(
   children: List(#(String, Element(msg))),
 ) -> Element(msg) {
   internal.element(
-    internal.as_column(),
+    internal.AsColumn,
     internal.div,
     [
       internal.html_class(

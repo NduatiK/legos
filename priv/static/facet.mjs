@@ -1,3 +1,12 @@
+// build/dev/javascript/gleam_stdlib/gleam/bool.mjs
+function guard(requirement, consequence, alternative) {
+  if (requirement) {
+    return consequence;
+  } else {
+    return alternative();
+  }
+}
+
 // build/dev/javascript/prelude.mjs
 var CustomType = class {
   withFields(fields) {
@@ -368,9 +377,9 @@ function divideFloat(a, b) {
     return a / b;
   }
 }
-function makeError(variant, file, module, line, fn, message, extra) {
+function makeError(variant2, file, module, line, fn, message, extra) {
   let error = new globalThis.Error(message);
-  error.gleam_error = variant;
+  error.gleam_error = variant2;
   error.file = file;
   error.module = module;
   error.line = line;
@@ -419,12 +428,20 @@ function reverse_and_prepend(loop$prefix, loop$suffix) {
 function reverse2(list4) {
   return reverse_and_prepend(list4, toList([]));
 }
-function map(option, fun) {
-  if (option instanceof Some) {
-    let x = option[0];
+function unwrap(option2, default$) {
+  if (option2 instanceof Some) {
+    let x = option2[0];
+    return x;
+  } else {
+    return default$;
+  }
+}
+function map(option2, fun) {
+  if (option2 instanceof Some) {
+    let x = option2[0];
     return new Some(fun(x));
   } else {
-    return option;
+    return option2;
   }
 }
 function values_loop(loop$list, loop$acc) {
@@ -792,12 +809,12 @@ function assocCollision(root3, shift, hash, key2, val, addedLeaf) {
         array: cloneAndSet(root3.array, idx, { type: ENTRY, k: key2, v: val })
       };
     }
-    const size3 = root3.array.length;
+    const size4 = root3.array.length;
     addedLeaf.val = true;
     return {
       type: COLLISION_NODE,
       hash,
-      array: cloneAndSet(root3.array, size3, { type: ENTRY, k: key2, v: val })
+      array: cloneAndSet(root3.array, size4, { type: ENTRY, k: key2, v: val })
     };
   }
   return assoc(
@@ -814,8 +831,8 @@ function assocCollision(root3, shift, hash, key2, val, addedLeaf) {
   );
 }
 function collisionIndexOf(root3, key2) {
-  const size3 = root3.array.length;
-  for (let i = 0; i < size3; i++) {
+  const size4 = root3.array.length;
+  for (let i = 0; i < size4; i++) {
     if (isEqual(key2, root3.array[i].k)) {
       return i;
     }
@@ -998,8 +1015,8 @@ function forEach(root3, fn) {
     return;
   }
   const items = root3.array;
-  const size3 = items.length;
-  for (let i = 0; i < size3; i++) {
+  const size4 = items.length;
+  for (let i = 0; i < size4; i++) {
     const item = items[i];
     if (item === void 0) {
       continue;
@@ -1045,9 +1062,9 @@ var Dict = class _Dict {
    * @param {undefined | Node<K,V>} root
    * @param {number} size
    */
-  constructor(root3, size3) {
+  constructor(root3, size4) {
     this.root = root3;
-    this.size = size3;
+    this.size = size4;
   }
   /**
    * @template NotFound
@@ -1161,6 +1178,29 @@ function insert(dict3, key2, value2) {
   return map_insert(key2, value2, dict3);
 }
 
+// build/dev/javascript/gleam_stdlib/gleam/int.mjs
+function compare(a, b) {
+  let $ = a === b;
+  if ($) {
+    return new Eq();
+  } else {
+    let $1 = a < b;
+    if ($1) {
+      return new Lt();
+    } else {
+      return new Gt();
+    }
+  }
+}
+function max(a, b) {
+  let $ = a > b;
+  if ($) {
+    return a;
+  } else {
+    return b;
+  }
+}
+
 // build/dev/javascript/gleam_stdlib/gleam/list.mjs
 var Ascending = class extends CustomType {
 };
@@ -1185,6 +1225,32 @@ function reverse3(list4) {
 }
 function is_empty2(list4) {
   return isEqual(list4, toList([]));
+}
+function contains(loop$list, loop$elem) {
+  while (true) {
+    let list4 = loop$list;
+    let elem = loop$elem;
+    if (list4 instanceof Empty) {
+      return false;
+    } else {
+      let first$1 = list4.head;
+      if (isEqual(first$1, elem)) {
+        return true;
+      } else {
+        let rest$1 = list4.tail;
+        loop$list = rest$1;
+        loop$elem = elem;
+      }
+    }
+  }
+}
+function first(list4) {
+  if (list4 instanceof Empty) {
+    return new Error(void 0);
+  } else {
+    let first$1 = list4.head;
+    return new Ok(first$1);
+  }
 }
 function filter_loop(loop$list, loop$fun, loop$acc) {
   while (true) {
@@ -1212,6 +1278,34 @@ function filter_loop(loop$list, loop$fun, loop$acc) {
 }
 function filter(list4, predicate) {
   return filter_loop(list4, predicate, toList([]));
+}
+function filter_map_loop(loop$list, loop$fun, loop$acc) {
+  while (true) {
+    let list4 = loop$list;
+    let fun = loop$fun;
+    let acc = loop$acc;
+    if (list4 instanceof Empty) {
+      return reverse3(acc);
+    } else {
+      let first$1 = list4.head;
+      let rest$1 = list4.tail;
+      let _block;
+      let $ = fun(first$1);
+      if ($ instanceof Ok) {
+        let first$2 = $[0];
+        _block = prepend(first$2, acc);
+      } else {
+        _block = acc;
+      }
+      let new_acc = _block;
+      loop$list = rest$1;
+      loop$fun = fun;
+      loop$acc = new_acc;
+    }
+  }
+}
+function filter_map(list4, fun) {
+  return filter_map_loop(list4, fun, toList([]));
 }
 function map_loop(loop$list, loop$fun, loop$acc) {
   while (true) {
@@ -1248,6 +1342,9 @@ function append_loop(loop$first, loop$second) {
 }
 function append(first3, second2) {
   return append_loop(reverse3(first3), second2);
+}
+function prepend2(list4, item) {
+  return prepend(item, list4);
 }
 function flatten_loop(loop$lists, loop$acc) {
   while (true) {
@@ -1651,7 +1748,7 @@ function range_loop(loop$start, loop$stop, loop$acc) {
     let start4 = loop$start;
     let stop = loop$stop;
     let acc = loop$acc;
-    let $ = compare2(start4, stop);
+    let $ = compare(start4, stop);
     if ($ instanceof Lt) {
       loop$start = start4;
       loop$stop = stop - 1;
@@ -1672,21 +1769,21 @@ function max_loop(loop$list, loop$compare, loop$max) {
   while (true) {
     let list4 = loop$list;
     let compare4 = loop$compare;
-    let max4 = loop$max;
+    let max5 = loop$max;
     if (list4 instanceof Empty) {
-      return max4;
+      return max5;
     } else {
       let first$1 = list4.head;
       let rest$1 = list4.tail;
-      let $ = compare4(first$1, max4);
+      let $ = compare4(first$1, max5);
       if ($ instanceof Lt) {
         loop$list = rest$1;
         loop$compare = compare4;
-        loop$max = max4;
+        loop$max = max5;
       } else if ($ instanceof Eq) {
         loop$list = rest$1;
         loop$compare = compare4;
-        loop$max = max4;
+        loop$max = max5;
       } else {
         loop$list = rest$1;
         loop$compare = compare4;
@@ -1695,7 +1792,7 @@ function max_loop(loop$list, loop$compare, loop$max) {
     }
   }
 }
-function max(list4, compare4) {
+function max2(list4, compare4) {
   if (list4 instanceof Empty) {
     return new Error(void 0);
   } else {
@@ -1972,6 +2069,38 @@ function index3(loop$path, loop$position, loop$inner, loop$data, loop$handle_mis
     }
   }
 }
+function subfield(field_path, field_decoder, next) {
+  return new Decoder(
+    (data) => {
+      let $ = index3(
+        field_path,
+        toList([]),
+        field_decoder.function,
+        data,
+        (data2, position) => {
+          let $12 = field_decoder.function(data2);
+          let default$;
+          default$ = $12[0];
+          let _pipe = [
+            default$,
+            toList([new DecodeError("Field", "Nothing", toList([]))])
+          ];
+          return push_path(_pipe, reverse3(position));
+        }
+      );
+      let out;
+      let errors1;
+      out = $[0];
+      errors1 = $[1];
+      let $1 = next(out).function(data);
+      let out$1;
+      let errors2;
+      out$1 = $1[0];
+      errors2 = $1[1];
+      return [out$1, append(errors1, errors2)];
+    }
+  );
+}
 function at(path, inner) {
   return new Decoder(
     (data) => {
@@ -2000,6 +2129,13 @@ var Nil = void 0;
 var NOT_FOUND = {};
 function identity(x) {
   return x;
+}
+function parse_float(value2) {
+  if (/^[-+]?(\d+)\.(\d+)([eE][-+]?\d+)?$/.test(value2)) {
+    return new Ok(parseFloat(value2));
+  } else {
+    return new Error(Nil);
+  }
 }
 function to_string(term) {
   return term.toString();
@@ -2052,21 +2188,24 @@ var trim_start_regex = /* @__PURE__ */ new RegExp(
   `^[${unicode_whitespaces}]*`
 );
 var trim_end_regex = /* @__PURE__ */ new RegExp(`[${unicode_whitespaces}]*$`);
+function floor(float2) {
+  return Math.floor(float2);
+}
 function round2(float2) {
   return Math.round(float2);
 }
 function new_map() {
   return Dict.new();
 }
-function map_get(map8, key2) {
-  const value2 = map8.get(key2, NOT_FOUND);
+function map_get(map9, key2) {
+  const value2 = map9.get(key2, NOT_FOUND);
   if (value2 === NOT_FOUND) {
     return new Error(Nil);
   }
   return new Ok(value2);
 }
-function map_insert(key2, value2, map8) {
-  return map8.set(key2, value2);
+function map_insert(key2, value2, map9) {
+  return map9.set(key2, value2);
 }
 function classify_dynamic(data) {
   if (typeof data === "string") {
@@ -2150,7 +2289,7 @@ function string(data) {
 }
 
 // build/dev/javascript/gleam_stdlib/gleam/float.mjs
-function compare(a, b) {
+function compare2(a, b) {
   let $ = a === b;
   if ($) {
     return new Eq();
@@ -2161,6 +2300,30 @@ function compare(a, b) {
     } else {
       return new Gt();
     }
+  }
+}
+function min(a, b) {
+  let $ = a < b;
+  if ($) {
+    return a;
+  } else {
+    return b;
+  }
+}
+function max3(a, b) {
+  let $ = a > b;
+  if ($) {
+    return a;
+  } else {
+    return b;
+  }
+}
+function absolute_value(x) {
+  let $ = x >= 0;
+  if ($) {
+    return x;
+  } else {
+    return 0 - x;
   }
 }
 function negate(x) {
@@ -2175,21 +2338,6 @@ function round(x) {
   }
 }
 
-// build/dev/javascript/gleam_stdlib/gleam/int.mjs
-function compare2(a, b) {
-  let $ = a === b;
-  if ($) {
-    return new Eq();
-  } else {
-    let $1 = a < b;
-    if ($1) {
-      return new Lt();
-    } else {
-      return new Gt();
-    }
-  }
-}
-
 // build/dev/javascript/gleam_stdlib/gleam/result.mjs
 function is_ok(result) {
   if (result instanceof Ok) {
@@ -2198,7 +2346,15 @@ function is_ok(result) {
     return false;
   }
 }
-function unwrap(result, default$) {
+function map4(result, fun) {
+  if (result instanceof Ok) {
+    let x = result[0];
+    return new Ok(fun(x));
+  } else {
+    return result;
+  }
+}
+function unwrap2(result, default$) {
   if (result instanceof Ok) {
     let v = result[0];
     return v;
@@ -2207,13 +2363,34 @@ function unwrap(result, default$) {
   }
 }
 
-// build/dev/javascript/gleam_stdlib/gleam/bool.mjs
-function guard(requirement, consequence, alternative) {
-  if (requirement) {
-    return consequence;
-  } else {
-    return alternative();
+// build/dev/javascript/gleam_stdlib/gleam/set.mjs
+var Set2 = class extends CustomType {
+  constructor(dict3) {
+    super();
+    this.dict = dict3;
   }
+};
+function new$() {
+  return new Set2(new_map());
+}
+function contains2(set, member) {
+  let _pipe = set.dict;
+  let _pipe$1 = map_get(_pipe, member);
+  return is_ok(_pipe$1);
+}
+var token = void 0;
+function insert2(set, member) {
+  return new Set2(insert(set.dict, member, token));
+}
+
+// build/dev/javascript/gleam_community_maths/maths.mjs
+function pi() {
+  return Math.PI;
+}
+
+// build/dev/javascript/gleam_community_maths/gleam_community/maths.mjs
+function pi2() {
+  return pi();
 }
 
 // build/dev/javascript/gleam_stdlib/gleam/function.mjs
@@ -2249,26 +2426,6 @@ function array2(entries, inner_type) {
   let _pipe = entries;
   let _pipe$1 = map2(_pipe, inner_type);
   return preprocessed_array(_pipe$1);
-}
-
-// build/dev/javascript/gleam_stdlib/gleam/set.mjs
-var Set2 = class extends CustomType {
-  constructor(dict3) {
-    super();
-    this.dict = dict3;
-  }
-};
-function new$() {
-  return new Set2(new_map());
-}
-function contains(set, member) {
-  let _pipe = set.dict;
-  let _pipe$1 = map_get(_pipe, member);
-  return is_ok(_pipe$1);
-}
-var token = void 0;
-function insert2(set, member) {
-  return new Set2(insert(set.dict, member, token));
 }
 
 // build/dev/javascript/lustre/lustre/internals/constants.ffi.mjs
@@ -2509,17 +2666,65 @@ function boolean_attribute(name, value2) {
 function class$(name) {
   return attribute2("class", name);
 }
+function spellcheck(should_check) {
+  return attribute2(
+    "spellcheck",
+    (() => {
+      if (should_check) {
+        return "true";
+      } else {
+        return "false";
+      }
+    })()
+  );
+}
+function style(property3, value2) {
+  if (property3 === "") {
+    return class$("");
+  } else if (value2 === "") {
+    return class$("");
+  } else {
+    return attribute2("style", property3 + ":" + value2 + ";");
+  }
+}
 function tabindex(index4) {
   return attribute2("tabindex", to_string(index4));
 }
+function href(url) {
+  return attribute2("href", url);
+}
+function rel(value2) {
+  return attribute2("rel", value2);
+}
+function autocomplete(value2) {
+  return attribute2("autocomplete", value2);
+}
 function disabled(is_disabled) {
   return boolean_attribute("disabled", is_disabled);
+}
+function max4(value2) {
+  return attribute2("max", value2);
+}
+function min3(value2) {
+  return attribute2("min", value2);
+}
+function step2(value2) {
+  return attribute2("step", value2);
+}
+function type_(control_type) {
+  return attribute2("type", control_type);
+}
+function value(control_value) {
+  return attribute2("value", control_value);
 }
 function aria(name, value2) {
   return attribute2("aria-" + name, value2);
 }
 function role(name) {
   return attribute2("role", name);
+}
+function aria_checked(value2) {
+  return aria("checked", value2);
 }
 function aria_label(value2) {
   return aria("label", value2);
@@ -2537,38 +2742,38 @@ var Effect = class extends CustomType {
     this.after_paint = after_paint;
   }
 };
-var empty = /* @__PURE__ */ new Effect(
+var empty2 = /* @__PURE__ */ new Effect(
   /* @__PURE__ */ toList([]),
   /* @__PURE__ */ toList([]),
   /* @__PURE__ */ toList([])
 );
 function none() {
-  return empty;
+  return empty2;
 }
 
 // build/dev/javascript/lustre/lustre/internals/mutable_map.ffi.mjs
-function empty2() {
+function empty3() {
   return null;
 }
-function get(map8, key2) {
-  const value2 = map8?.get(key2);
+function get(map9, key2) {
+  const value2 = map9?.get(key2);
   if (value2 != null) {
     return new Ok(value2);
   } else {
     return new Error(void 0);
   }
 }
-function has_key2(map8, key2) {
-  return map8 && map8.has(key2);
+function has_key2(map9, key2) {
+  return map9 && map9.has(key2);
 }
-function insert3(map8, key2, value2) {
-  map8 ??= /* @__PURE__ */ new Map();
-  map8.set(key2, value2);
-  return map8;
+function insert3(map9, key2, value2) {
+  map9 ??= /* @__PURE__ */ new Map();
+  map9.set(key2, value2);
+  return map9;
 }
-function remove(map8, key2) {
-  map8?.delete(key2);
-  return map8;
+function remove(map9, key2) {
+  map9?.delete(key2);
+  return map9;
 }
 
 // build/dev/javascript/lustre/lustre/vdom/path.mjs
@@ -2869,7 +3074,7 @@ var Events = class extends CustomType {
 };
 function new$3() {
   return new Events(
-    empty2(),
+    empty3(),
     empty_list,
     empty_list
   );
@@ -3104,7 +3309,7 @@ function element2(tag, attributes, children) {
     tag,
     attributes,
     children,
-    empty2(),
+    empty3(),
     false,
     false
   );
@@ -3114,6 +3319,49 @@ function text2(content) {
 }
 function none2() {
   return text("", identity2, "");
+}
+function map6(element5, f) {
+  let mapper = identity2(compose_mapper(identity2(f), element5.mapper));
+  if (element5 instanceof Fragment) {
+    let children = element5.children;
+    let keyed_children = element5.keyed_children;
+    return new Fragment(
+      element5.kind,
+      element5.key,
+      mapper,
+      identity2(children),
+      identity2(keyed_children)
+    );
+  } else if (element5 instanceof Element) {
+    let attributes = element5.attributes;
+    let children = element5.children;
+    let keyed_children = element5.keyed_children;
+    return new Element(
+      element5.kind,
+      element5.key,
+      mapper,
+      element5.namespace,
+      element5.tag,
+      identity2(attributes),
+      identity2(children),
+      identity2(keyed_children),
+      element5.self_closing,
+      element5.void
+    );
+  } else if (element5 instanceof Text) {
+    return identity2(element5);
+  } else {
+    let attributes = element5.attributes;
+    return new UnsafeInnerHtml(
+      element5.kind,
+      element5.key,
+      mapper,
+      element5.namespace,
+      element5.tag,
+      identity2(attributes),
+      element5.inner_html
+    );
+  }
 }
 
 // build/dev/javascript/lustre/lustre/element/html.mjs
@@ -3128,6 +3376,9 @@ function p(attrs, children) {
 }
 function s(attrs, children) {
   return element2("s", attrs, children);
+}
+function span(attrs, children) {
+  return element2("span", attrs, children);
 }
 function u(attrs, children) {
   return element2("u", attrs, children);
@@ -3738,7 +3989,7 @@ function do_diff(loop$old, loop$old_keyed, loop$new, loop$new_keyed, loop$moved,
               prev$1.keyed_children,
               next$1.children,
               next$1.keyed_children,
-              empty2(),
+              empty3(),
               0,
               0,
               0,
@@ -3861,7 +4112,7 @@ function do_diff(loop$old, loop$old_keyed, loop$new, loop$new_keyed, loop$moved,
                 prev$1.keyed_children,
                 next$1.children,
                 next$1.keyed_children,
-                empty2(),
+                empty3(),
                 0,
                 0,
                 0,
@@ -4160,10 +4411,10 @@ function do_diff(loop$old, loop$old_keyed, loop$new, loop$new_keyed, loop$moved,
 function diff(events, old, new$8) {
   return do_diff(
     toList([old]),
-    empty2(),
+    empty3(),
     toList([new$8]),
-    empty2(),
-    empty2(),
+    empty3(),
+    empty3(),
     0,
     0,
     0,
@@ -4482,20 +4733,20 @@ var Reconciler = class {
       }
     }
   }
-  #updateDebounceThrottle(map8, name, delay) {
-    const debounceOrThrottle = map8.get(name);
+  #updateDebounceThrottle(map9, name, delay) {
+    const debounceOrThrottle = map9.get(name);
     if (delay > 0) {
       if (debounceOrThrottle) {
         debounceOrThrottle.delay = delay;
       } else {
-        map8.set(name, { delay });
+        map9.set(name, { delay });
       }
     } else if (debounceOrThrottle) {
       const { timeout } = debounceOrThrottle;
       if (timeout) {
         clearTimeout(timeout);
       }
-      map8.delete(name);
+      map9.delete(name);
     }
   }
   #handleEvent(attribute3, event4) {
@@ -4646,7 +4897,7 @@ function do_extract_keyed_children(loop$key_children_pairs, loop$keyed_children,
 function extract_keyed_children(children) {
   return do_extract_keyed_children(
     children,
-    empty2(),
+    empty3(),
     empty_list
   );
 }
@@ -4703,9 +4954,9 @@ var virtualise = (root3) => {
     if (canVirtualiseNode(child)) virtualisableRootChildren += 1;
   }
   if (virtualisableRootChildren === 0) {
-    const placeholder = document().createTextNode("");
-    insertMetadataChild(text_kind, rootMeta, placeholder, 0, null);
-    root3.replaceChildren(placeholder);
+    const placeholder2 = document().createTextNode("");
+    insertMetadataChild(text_kind, rootMeta, placeholder2, 0, null);
+    root3.replaceChildren(placeholder2);
     return none2();
   }
   if (virtualisableRootChildren === 1) {
@@ -4820,11 +5071,11 @@ var virtualiseAttribute = (attr) => {
 // build/dev/javascript/lustre/lustre/runtime/client/runtime.ffi.mjs
 var is_browser = () => !!document();
 var Runtime = class {
-  constructor(root3, [model, effects], view2, update3) {
+  constructor(root3, [model, effects], view3, update4) {
     this.root = root3;
     this.#model = model;
-    this.#view = view2;
-    this.#update = update3;
+    this.#view = view3;
+    this.#update = update4;
     this.root.addEventListener("context-request", (event4) => {
       if (!(event4.context && event4.callback)) return;
       if (!this.#contexts.has(event4.context)) return;
@@ -5024,7 +5275,7 @@ var Config2 = class extends CustomType {
   }
 };
 function new$6(options) {
-  let init2 = new Config2(
+  let init3 = new Config2(
     true,
     true,
     false,
@@ -5038,9 +5289,9 @@ function new$6(options) {
   );
   return fold(
     options,
-    init2,
-    (config, option) => {
-      return option.apply(config);
+    init3,
+    (config, option2) => {
+      return option2.apply(config);
     }
   );
 }
@@ -5048,8 +5299,8 @@ function new$6(options) {
 // build/dev/javascript/lustre/lustre/runtime/client/spa.ffi.mjs
 var Spa = class {
   #runtime;
-  constructor(root3, [init2, effects], update3, view2) {
-    this.#runtime = new Runtime(root3, [init2, effects], view2, update3);
+  constructor(root3, [init3, effects], update4, view3) {
+    this.#runtime = new Runtime(root3, [init3, effects], view3, update4);
   }
   send(message) {
     switch (message.constructor) {
@@ -5072,20 +5323,20 @@ var Spa = class {
     this.#runtime.emit(event4, data);
   }
 };
-var start = ({ init: init2, update: update3, view: view2 }, selector, flags) => {
+var start = ({ init: init3, update: update4, view: view3 }, selector, flags) => {
   if (!is_browser()) return new Error(new NotABrowser());
   const root3 = selector instanceof HTMLElement ? selector : document().querySelector(selector);
   if (!root3) return new Error(new ElementNotFound(selector));
-  return new Ok(new Spa(root3, init2(flags), update3, view2));
+  return new Ok(new Spa(root3, init3(flags), update4, view3));
 };
 
 // build/dev/javascript/lustre/lustre.mjs
 var App = class extends CustomType {
-  constructor(init2, update3, view2, config) {
+  constructor(init3, update4, view3, config) {
     super();
-    this.init = init2;
-    this.update = update3;
-    this.view = view2;
+    this.init = init3;
+    this.update = update4;
+    this.view = view3;
     this.config = config;
   }
 };
@@ -5097,17 +5348,17 @@ var ElementNotFound = class extends CustomType {
 };
 var NotABrowser = class extends CustomType {
 };
-function application(init2, update3, view2) {
-  return new App(init2, update3, view2, new$6(empty_list));
+function application(init3, update4, view3) {
+  return new App(init3, update4, view3, new$6(empty_list));
 }
-function simple(init2, update3, view2) {
+function simple(init3, update4, view3) {
   let init$1 = (start_args) => {
-    return [init2(start_args), none()];
+    return [init3(start_args), none()];
   };
   let update$1 = (model, msg) => {
-    return [update3(model, msg), none()];
+    return [update4(model, msg), none()];
   };
-  return application(init$1, update$1, view2);
+  return application(init$1, update$1, view3);
 }
 function start3(app, selector, start_args) {
   return guard(
@@ -5117,6 +5368,32 @@ function start3(app, selector, start_args) {
       return start(app, selector, start_args);
     }
   );
+}
+
+// build/dev/javascript/gleam_stdlib/gleam/pair.mjs
+function first2(pair) {
+  let a;
+  a = pair[0];
+  return a;
+}
+function second(pair) {
+  let a;
+  a = pair[1];
+  return a;
+}
+function map_first(pair, fun) {
+  let a;
+  let b;
+  a = pair[0];
+  b = pair[1];
+  return [fun(a), b];
+}
+function map_second(pair, fun) {
+  let a;
+  let b;
+  a = pair[0];
+  b = pair[1];
+  return [a, fun(b)];
 }
 
 // build/dev/javascript/facet/facet/internal/flag.mjs
@@ -5168,10 +5445,13 @@ function merge2(field1, field2) {
 function flag(i) {
   let $ = i > 31;
   if ($) {
-    return new Second(bitwise_shift_left(i - 32, 1));
+    return new Second(bitwise_shift_left(1, i - 32));
   } else {
-    return new First(bitwise_shift_left(i, 1));
+    return new First(bitwise_shift_left(1, i));
   }
+}
+function transparency() {
+  return flag(0);
 }
 function padding() {
   return flag(2);
@@ -5194,26 +5474,62 @@ function height() {
 function bg_color() {
   return flag(8);
 }
+function bg_gradient() {
+  return flag(10);
+}
 function border_style() {
   return flag(11);
+}
+function font_alignment() {
+  return flag(12);
+}
+function font_weight() {
+  return flag(13);
 }
 function font_color() {
   return flag(14);
 }
+function letter_spacing() {
+  return flag(16);
+}
 function border_round() {
   return flag(17);
+}
+function shadows() {
+  return flag(19);
+}
+function overflow() {
+  return flag(20);
 }
 function cursor() {
   return flag(21);
 }
+function rotate() {
+  return flag(24);
+}
+function move_y() {
+  return flag(26);
+}
 function border_width() {
   return flag(27);
+}
+function border_color() {
+  return flag(28);
 }
 function y_align() {
   return flag(29);
 }
 function x_align() {
   return flag(30);
+}
+function focus() {
+  return flag(31);
+}
+function active() {
+  return flag(32);
+}
+function hover() {
+  return flag(33);
 }
 function height_content() {
   return flag(36);
@@ -5245,19 +5561,13 @@ function width_between() {
 function height_between() {
   return flag(45);
 }
+function font_variant() {
+  return flag(48);
+}
+function transition() {
+  return flag(49);
+}
 var none3 = /* @__PURE__ */ new Field(0, 0);
-
-// build/dev/javascript/gleam_stdlib/gleam/pair.mjs
-function first2(pair) {
-  let a;
-  a = pair[0];
-  return a;
-}
-function second(pair) {
-  let a;
-  a = pair[1];
-  return a;
-}
 
 // build/dev/javascript/facet/facet/internal/style.mjs
 var Class = class extends CustomType {
@@ -5565,7 +5875,7 @@ function render_compact(style_classes) {
 function input_text_reset() {
   return '\ninput[type="search"],\ninput[type="search"]::-webkit-search-decoration,\ninput[type="search"]::-webkit-search-cancel-button,\ninput[type="search"]::-webkit-search-results-button,\ninput[type="search"]::-webkit-search-results-decoration {\n  -webkit-appearance:none;\n}\n';
 }
-function font_variant(var$) {
+function font_variant2(var$) {
   return toList([
     new Class(
       ".v-" + var$,
@@ -5613,14 +5923,14 @@ function common_values() {
       ]),
       flatten(
         toList([
-          font_variant("zero"),
-          font_variant("onum"),
-          font_variant("liga"),
-          font_variant("dlig"),
-          font_variant("ordn"),
-          font_variant("tnum"),
-          font_variant("afrc"),
-          font_variant("frac")
+          font_variant2("zero"),
+          font_variant2("onum"),
+          font_variant2("liga"),
+          font_variant2("dlig"),
+          font_variant2("ordn"),
+          font_variant2("tnum"),
+          font_variant2("afrc"),
+          font_variant2("frac")
         ])
       )
     ])
@@ -5900,6 +6210,7 @@ function base_sheet() {
         new Prop("margin", "0")
       ])
     ),
+    new Class(".transparency-0", toList([new Prop("opacity", "0")])),
     new Class(
       dot(classes_any) + dot(classes_single) + dot(classes_image_container),
       toList([
@@ -6889,6 +7200,8 @@ var Text2 = class extends CustomType {
     this[0] = $0;
   }
 };
+var Empty2 = class extends CustomType {
+};
 var NoStyleSheet = class extends CustomType {
 };
 var StaticRootAndDynamic = class extends CustomType {
@@ -7154,6 +7467,13 @@ var Nearby = class extends CustomType {
     this[1] = $1;
   }
 };
+var TransformComponent = class extends CustomType {
+  constructor($0, $1) {
+    super();
+    this[0] = $0;
+    this[1] = $1;
+  }
+};
 var MoveX = class extends CustomType {
   constructor($0) {
     super();
@@ -7211,6 +7531,8 @@ var LiveAssertive = class extends CustomType {
 };
 var Button = class extends CustomType {
 };
+var Paragraph = class extends CustomType {
+};
 var Px = class extends CustomType {
   constructor($0) {
     super();
@@ -7225,7 +7547,26 @@ var Fill = class extends CustomType {
     this[0] = $0;
   }
 };
+var Pct = class extends CustomType {
+  constructor($0) {
+    super();
+    this[0] = $0;
+  }
+};
+var ScreenPct = class extends CustomType {
+  constructor($0) {
+    super();
+    this[0] = $0;
+  }
+};
 var Min = class extends CustomType {
+  constructor($0, $1) {
+    super();
+    this[0] = $0;
+    this[1] = $1;
+  }
+};
+var Max = class extends CustomType {
   constructor($0, $1) {
     super();
     this[0] = $0;
@@ -7245,20 +7586,21 @@ var InFront = class extends CustomType {
 var Behind2 = class extends CustomType {
 };
 var Rgba = class extends CustomType {
-  constructor($0, $1, $2, $3) {
+  constructor(r, g, b, a) {
     super();
-    this[0] = $0;
-    this[1] = $1;
-    this[2] = $2;
-    this[3] = $3;
+    this.r = r;
+    this.g = g;
+    this.b = b;
+    this.a = a;
   }
 };
 var Oklch = class extends CustomType {
-  constructor($0, $1, $2) {
+  constructor(l, c, h, alpha2) {
     super();
-    this[0] = $0;
-    this[1] = $1;
-    this[2] = $2;
+    this.l = l;
+    this.c = c;
+    this.h = h;
+    this.alpha = alpha2;
   }
 };
 var Generic = class extends CustomType {
@@ -7356,38 +7698,38 @@ var FocusStyleOption = class extends CustomType {
   }
 };
 var FocusStyle = class extends CustomType {
-  constructor(border_color2, background_color, shadow) {
+  constructor(border_color2, background_color, shadow2) {
     super();
     this.border_color = border_color2;
     this.background_color = background_color;
-    this.shadow = shadow;
+    this.shadow = shadow2;
   }
 };
 var Shadow = class extends CustomType {
-  constructor(color3, offset, blur, size3) {
+  constructor(color4, offset, blur, size4) {
     super();
-    this.color = color3;
+    this.color = color4;
     this.offset = offset;
     this.blur = blur;
-    this.size = size3;
+    this.size = size4;
   }
 };
 var InsetShadow = class extends CustomType {
-  constructor(color3, offset, blur, size3, inset) {
+  constructor(color4, offset, blur, size4, inset) {
     super();
-    this.color = color3;
+    this.color = color4;
     this.offset = offset;
     this.blur = blur;
-    this.size = size3;
+    this.size = size4;
     this.inset = inset;
   }
 };
 var FontSizing = class extends CustomType {
-  constructor(vertical, height3, size3) {
+  constructor(vertical, height3, size4) {
     super();
     this.vertical = vertical;
     this.height = height3;
-    this.size = size3;
+    this.size = size4;
   }
 };
 var ConvertedAdjustment = class extends CustomType {
@@ -7410,9 +7752,9 @@ function render_variant(var$) {
     return '"' + name + '" ' + to_string(index4);
   }
 }
-function render_variants(typeface) {
-  if (typeface instanceof FontWith) {
-    let variants = typeface.variants;
+function render_variants(typeface2) {
+  if (typeface2 instanceof FontWith) {
+    let variants = typeface2.variants;
     let _pipe = variants;
     let _pipe$1 = map2(_pipe, render_variant);
     let _pipe$2 = join(_pipe$1, ", ");
@@ -7433,9 +7775,9 @@ function is_small_caps(var$) {
     return name === "smcp" && index4 === 1;
   }
 }
-function has_small_caps(typeface) {
-  if (typeface instanceof FontWith) {
-    let variants = typeface.variants;
+function has_small_caps(typeface2) {
+  if (typeface2 instanceof FontWith) {
+    let variants = typeface2.variants;
     return any(variants, is_small_caps);
   } else {
     return false;
@@ -7443,6 +7785,11 @@ function has_small_caps(typeface) {
 }
 function html_class(class_name) {
   return new Attr(class$(class_name));
+}
+function unstyled(element5) {
+  return new Unstyled((_) => {
+    return element5;
+  });
 }
 function add_node_name(new_node, old) {
   if (old instanceof Generic) {
@@ -7501,10 +7848,10 @@ function transform_value(transform) {
     let scale2 = "scale3d(" + float_to_string(sx) + ", " + float_to_string(
       sy
     ) + ", " + float_to_string(sz) + ")";
-    let rotate2 = "rotate3d(" + float_to_string(ox) + ", " + float_to_string(
+    let rotate3 = "rotate3d(" + float_to_string(ox) + ", " + float_to_string(
       oy
     ) + ", " + float_to_string(oz) + ", " + float_to_string(angle) + "rad)";
-    return new Some(translate + " " + scale2 + " " + rotate2);
+    return new Some(translate + " " + scale2 + " " + rotate3);
   }
 }
 function compose_transformation(transform, component) {
@@ -7627,16 +7974,12 @@ function skippable(flag2, style2) {
 function render_width(w) {
   if (w instanceof Px) {
     let px2 = w[0];
+    let val = to_string(px2);
+    let name = "width-px-" + val;
     return [
       none3,
-      classes_width_exact + " width-px-" + to_string(px2),
-      toList([
-        new Single(
-          "width-px-" + to_string(px2),
-          "width",
-          to_string(px2) + "px"
-        )
-      ])
+      classes_width_exact + " " + name,
+      toList([new Single(name, "width", val + "px")])
     ];
   } else if (w instanceof Content2) {
     return [
@@ -7670,6 +8013,32 @@ function render_width(w) {
         ])
       ];
     }
+  } else if (w instanceof Pct) {
+    let pct2 = w[0];
+    return [
+      none3,
+      classes_width_exact + " width-pct-" + to_string(pct2),
+      toList([
+        new Single(
+          "width-pct-" + to_string(pct2),
+          "width",
+          to_string(pct2) + "%"
+        )
+      ])
+    ];
+  } else if (w instanceof ScreenPct) {
+    let pct2 = w[0];
+    return [
+      none3,
+      classes_width_exact + " width-spct-" + to_string(pct2),
+      toList([
+        new Single(
+          "width-spct-" + to_string(pct2),
+          "width",
+          to_string(pct2) + "svw"
+        )
+      ])
+    ];
   } else if (w instanceof Min) {
     let min_size = w[0];
     let len = w[1];
@@ -7756,6 +8125,24 @@ function render_height(h) {
         ])
       ];
     }
+  } else if (h instanceof Pct) {
+    let pct2 = h[0];
+    let val = to_string(pct2);
+    let name = "height-pct-" + val;
+    return [
+      none3,
+      classes_height_exact + " " + name,
+      toList([new Single(name, "height", val + "%")])
+    ];
+  } else if (h instanceof ScreenPct) {
+    let pct2 = h[0];
+    let val = to_string(pct2);
+    let name = "height-spct-" + val;
+    return [
+      none3,
+      classes_height_exact + " " + name,
+      toList([new Single(name, "height", val + "svh")])
+    ];
   } else if (h instanceof Min) {
     let min_size = h[0];
     let len = h[1];
@@ -7833,6 +8220,9 @@ function context_classes(context) {
     return page_class();
   }
 }
+function untransformed() {
+  return new Untransformed();
+}
 function add_children2(existing, nearby_children) {
   if (nearby_children instanceof NoNearbyChildren) {
     return existing;
@@ -7840,12 +8230,12 @@ function add_children2(existing, nearby_children) {
     let behind = nearby_children[0];
     return append(behind, existing);
   } else if (nearby_children instanceof ChildrenInFront) {
-    let in_front = nearby_children[0];
-    return append(existing, in_front);
+    let in_front2 = nearby_children[0];
+    return append(existing, in_front2);
   } else {
     let behind = nearby_children.behind;
-    let in_front = nearby_children.infront;
-    return flatten(toList([behind, existing, in_front]));
+    let in_front2 = nearby_children.infront;
+    return flatten(toList([behind, existing, in_front2]));
   }
 }
 function add_keyed_children(key2, existing, nearby_children) {
@@ -7860,14 +8250,82 @@ function add_keyed_children(key2, existing, nearby_children) {
     let behind = nearby_children[0];
     return append(map_with_key(behind), existing);
   } else if (nearby_children instanceof ChildrenInFront) {
-    let in_front = nearby_children[0];
-    return append(existing, map_with_key(in_front));
+    let in_front2 = nearby_children[0];
+    return append(existing, map_with_key(in_front2));
   } else {
     let behind = nearby_children.behind;
-    let in_front = nearby_children.infront;
+    let in_front2 = nearby_children.infront;
     return flatten(
-      toList([map_with_key(behind), existing, map_with_key(in_front)])
+      toList([map_with_key(behind), existing, map_with_key(in_front2)])
     );
+  }
+}
+function get_spacing(attrs, default$) {
+  let _pipe = attrs;
+  let _pipe$1 = fold_right(
+    _pipe,
+    new None(),
+    (acc, attr) => {
+      if (acc instanceof Some) {
+        return acc;
+      } else {
+        if (attr instanceof StyleClass) {
+          let $ = attr.style;
+          if ($ instanceof SpacingStyle) {
+            let x = $[1];
+            let y = $[2];
+            return new Some([x, y]);
+          } else {
+            return new None();
+          }
+        } else {
+          return new None();
+        }
+      }
+    }
+  );
+  return unwrap(_pipe$1, default$);
+}
+function get_width(attrs) {
+  let _pipe = attrs;
+  return fold_right(
+    _pipe,
+    new None(),
+    (acc, attr) => {
+      if (acc instanceof Some) {
+        return acc;
+      } else {
+        if (attr instanceof Width) {
+          let len = attr[0];
+          return new Some(len);
+        } else {
+          return new None();
+        }
+      }
+    }
+  );
+}
+function get_height(attrs) {
+  let $ = fold_right(
+    attrs,
+    new None(),
+    (acc, attr) => {
+      if (acc instanceof Some) {
+        return acc;
+      } else {
+        if (attr instanceof Height) {
+          let len = attr[0];
+          return new Some(len);
+        } else {
+          return new None();
+        }
+      }
+    }
+  );
+  if ($ instanceof Some) {
+    return $;
+  } else {
+    return $;
   }
 }
 function text_element_classes() {
@@ -8225,21 +8683,21 @@ function render_style(options, maybe_pseudo, selector, props) {
 function to_grid_length_helper(loop$minimum, loop$maximum, loop$x) {
   while (true) {
     let minimum = loop$minimum;
-    let maximum = loop$maximum;
+    let maximum2 = loop$maximum;
     let x = loop$x;
     if (x instanceof Px) {
       let px2 = x[0];
       return to_string(px2) + "px";
     } else if (x instanceof Content2) {
-      if (maximum instanceof Some) {
+      if (maximum2 instanceof Some) {
         if (minimum instanceof Some) {
-          let max_size = maximum[0];
+          let max_size = maximum2[0];
           let min_size = minimum[0];
           return "minmax(" + to_string(min_size) + "px, " + to_string(
             max_size
           ) + "px)";
         } else {
-          let max_size = maximum[0];
+          let max_size = maximum2[0];
           return "minmax(max-content, " + to_string(max_size) + "px)";
         }
       } else if (minimum instanceof Some) {
@@ -8250,30 +8708,36 @@ function to_grid_length_helper(loop$minimum, loop$maximum, loop$x) {
       }
     } else if (x instanceof Fill) {
       let i = x[0];
-      if (maximum instanceof Some) {
+      if (maximum2 instanceof Some) {
         if (minimum instanceof Some) {
-          let max_size = maximum[0];
+          let max_size = maximum2[0];
           let min_size = minimum[0];
           return "minmax(" + to_string(min_size) + "px, " + to_string(
             max_size
           ) + "px)";
         } else {
-          let max_size = maximum[0];
+          let max_size = maximum2[0];
           return "minmax(max-content, " + to_string(max_size) + "px)";
         }
       } else if (minimum instanceof Some) {
         let min_size = minimum[0];
         return "minmax(" + to_string(min_size) + "px, " + to_string(
           i
-        ) + "frfr)";
+        ) + "fr)";
       } else {
         return to_string(i) + "fr";
       }
+    } else if (x instanceof Pct) {
+      let pct2 = x[0];
+      return to_string(pct2) + "%";
+    } else if (x instanceof ScreenPct) {
+      let pct2 = x[0];
+      return to_string(pct2) + "%";
     } else if (x instanceof Min) {
       let m = x[0];
       let len = x[1];
       loop$minimum = new Some(m);
-      loop$maximum = maximum;
+      loop$maximum = maximum2;
       loop$x = len;
     } else {
       let m = x[0];
@@ -8293,14 +8757,20 @@ function length_class_name(len) {
   } else if (len instanceof Fill) {
     let i = len[0];
     return to_string(i) + "fr";
+  } else if (len instanceof Pct) {
+    let i = len[0];
+    return to_string(i) + "%";
+  } else if (len instanceof ScreenPct) {
+    let i = len[0];
+    return to_string(i) + "%";
   } else if (len instanceof Min) {
-    let min3 = len[0];
+    let min4 = len[0];
     let l = len[1];
-    return "min" + to_string(min3) + length_class_name(l);
+    return "min" + to_string(min4) + length_class_name(l);
   } else {
-    let max4 = len[0];
+    let max5 = len[0];
     let l = len[1];
-    return "max" + to_string(max4) + length_class_name(l);
+    return "max" + to_string(max5) + length_class_name(l);
   }
 }
 function float_class(x) {
@@ -8340,24 +8810,25 @@ function transform_class(transform) {
     );
   }
 }
-function format_color(color3) {
-  if (color3 instanceof Rgba) {
-    let red = color3[0];
-    let green = color3[1];
-    let blue = color3[2];
-    let alpha = color3[3];
+function format_color(color4) {
+  if (color4 instanceof Rgba) {
+    let red = color4.r;
+    let green = color4.g;
+    let blue = color4.b;
+    let alpha2 = color4.a;
     let r = to_string(round(red * 255));
     let g = to_string(round(green * 255));
     let b = to_string(round(blue * 255));
-    let a = float_to_string(alpha);
+    let a = float_to_string(alpha2);
     return "rgba(" + r + "," + g + "," + b + "," + a + ")";
   } else {
-    let a = color3[0];
-    let b = color3[1];
-    let c = color3[2];
-    return "oklch(" + float_to_string(a) + " " + float_to_string(b) + " " + float_to_string(
-      c
-    ) + ")";
+    let l = color4.l;
+    let c = color4.c;
+    let h = color4.h;
+    let alpha2 = color4.alpha;
+    return "oklch(" + float_to_string(l) + " " + float_to_string(c) + " " + float_to_string(
+      h
+    ) + " / " + float_to_string(alpha2) + ")";
   }
 }
 function render_style_rule(options, rule, maybe_pseudo) {
@@ -8418,12 +8889,12 @@ function render_style_rule(options, rule, maybe_pseudo) {
   } else if (rule instanceof Colored) {
     let class$2 = rule[0];
     let prop = rule[1];
-    let color3 = rule[2];
+    let color4 = rule[2];
     return render_style(
       options,
       maybe_pseudo,
       "." + class$2,
-      toList([new Property2(prop, format_color(color3))])
+      toList([new Property2(prop, format_color(color4))])
     );
   } else if (rule instanceof SpacingStyle) {
     let cls = rule[0];
@@ -8438,7 +8909,7 @@ function render_style_rule(options, rule, maybe_pseudo) {
     let wrapped_row = "." + classes_wrapped + row2;
     let column2 = "." + classes_column;
     let page = "." + classes_page;
-    let paragraph = "." + classes_paragraph;
+    let paragraph2 = "." + classes_paragraph;
     let left = "." + classes_align_left;
     let right = "." + classes_align_right;
     let any2 = "." + classes_any;
@@ -8484,7 +8955,7 @@ function render_style_rule(options, rule, maybe_pseudo) {
         render_style(
           options,
           maybe_pseudo,
-          class$2 + paragraph,
+          class$2 + paragraph2,
           toList([
             new Property2(
               "line-height",
@@ -8507,19 +8978,19 @@ function render_style_rule(options, rule, maybe_pseudo) {
         render_style(
           options,
           maybe_pseudo,
-          class$2 + paragraph + " > " + left,
+          class$2 + paragraph2 + " > " + left,
           toList([new Property2("margin-right", x_px)])
         ),
         render_style(
           options,
           maybe_pseudo,
-          class$2 + paragraph + " > " + right,
+          class$2 + paragraph2 + " > " + right,
           toList([new Property2("margin-left", x_px)])
         ),
         render_style(
           options,
           maybe_pseudo,
-          class$2 + paragraph + "::after",
+          class$2 + paragraph2 + "::after",
           toList([
             new Property2("content", "''"),
             new Property2("display", "block"),
@@ -8534,7 +9005,7 @@ function render_style_rule(options, rule, maybe_pseudo) {
         render_style(
           options,
           maybe_pseudo,
-          class$2 + paragraph + "::before",
+          class$2 + paragraph2 + "::before",
           toList([
             new Property2("content", "''"),
             new Property2("display", "block"),
@@ -8730,23 +9201,23 @@ function render_style_rule(options, rule, maybe_pseudo) {
     );
   }
 }
-function format_box_shadow(shadow) {
+function format_box_shadow(shadow2) {
   return join(
     values(
       toList([
         (() => {
-          let $ = shadow.inset;
+          let $ = shadow2.inset;
           if ($) {
             return new Some("inset");
           } else {
             return new None();
           }
         })(),
-        new Some(float_to_string(first2(shadow.offset)) + "px"),
-        new Some(float_to_string(second(shadow.offset)) + "px"),
-        new Some(float_to_string(shadow.blur) + "px"),
-        new Some(float_to_string(shadow.size) + "px"),
-        new Some(format_color(shadow.color))
+        new Some(float_to_string(first2(shadow2.offset)) + "px"),
+        new Some(float_to_string(second(shadow2.offset)) + "px"),
+        new Some(float_to_string(shadow2.blur) + "px"),
+        new Some(float_to_string(shadow2.size) + "px"),
+        new Some(format_color(shadow2.color))
       ])
     ),
     " "
@@ -8760,30 +9231,30 @@ function render_focus_style(focus2) {
         toList([
           map(
             focus2.border_color,
-            (color3) => {
-              return new Property2("border-color", format_color(color3));
+            (color4) => {
+              return new Property2("border-color", format_color(color4));
             }
           ),
           map(
             focus2.background_color,
-            (color3) => {
-              return new Property2("background-color", format_color(color3));
+            (color4) => {
+              return new Property2("background-color", format_color(color4));
             }
           ),
           map(
             focus2.shadow,
-            (shadow) => {
+            (shadow2) => {
               return new Property2(
                 "box-shadow",
                 format_box_shadow(
                   new InsetShadow(
-                    shadow.color,
+                    shadow2.color,
                     [
-                      identity(first2(shadow.offset)),
-                      identity(second(shadow.offset))
+                      identity(first2(shadow2.offset)),
+                      identity(second(shadow2.offset))
                     ],
-                    identity(shadow.blur),
-                    identity(shadow.size),
+                    identity(shadow2.blur),
+                    identity(shadow2.size),
                     false
                   )
                 )
@@ -8804,30 +9275,30 @@ function render_focus_style(focus2) {
         toList([
           map(
             focus2.border_color,
-            (color3) => {
-              return new Property2("border-color", format_color(color3));
+            (color4) => {
+              return new Property2("border-color", format_color(color4));
             }
           ),
           map(
             focus2.background_color,
-            (color3) => {
-              return new Property2("background-color", format_color(color3));
+            (color4) => {
+              return new Property2("background-color", format_color(color4));
             }
           ),
           map(
             focus2.shadow,
-            (shadow) => {
+            (shadow2) => {
               return new Property2(
                 "box-shadow",
                 format_box_shadow(
                   new InsetShadow(
-                    shadow.color,
+                    shadow2.color,
                     [
-                      identity(first2(shadow.offset)),
-                      identity(second(shadow.offset))
+                      identity(first2(shadow2.offset)),
+                      identity(second(shadow2.offset))
                     ],
-                    identity(shadow.blur),
-                    identity(shadow.size),
+                    identity(shadow2.blur),
+                    identity(shadow2.size),
                     false
                   )
                 )
@@ -8840,21 +9311,24 @@ function render_focus_style(focus2) {
     )
   ]);
 }
-function format_color_class(color3) {
-  if (color3 instanceof Rgba) {
-    let red = color3[0];
-    let green = color3[1];
-    let blue = color3[2];
-    let alpha = color3[3];
+function format_color_class(color4) {
+  if (color4 instanceof Rgba) {
+    let red = color4.r;
+    let green = color4.g;
+    let blue = color4.b;
+    let alpha2 = color4.a;
     return float_class(red) + "-" + float_class(green) + "-" + float_class(
       blue
-    ) + "-" + float_class(alpha);
+    ) + "-" + float_class(alpha2);
   } else {
-    let a = color3[0];
-    let b = color3[1];
-    let c = color3[2];
-    return "oklch-" + float_class(a) + "-" + float_class(b) + "-" + float_class(
-      c
+    let a = color4.l;
+    let b = color4.c;
+    let c = color4.h;
+    let alpha2 = color4.alpha;
+    return "oklch-" + to_string(round(a * 1e3)) + "-" + to_string(
+      round(b * 1e3)
+    ) + "-" + to_string(round(c * 1e3)) + "-" + float_class(
+      alpha2
     );
   }
 }
@@ -8892,8 +9366,38 @@ function root_style() {
     )
   ]);
 }
+function box_shadow_class(shadow2) {
+  return join(
+    toList([
+      (() => {
+        let $ = shadow2.inset;
+        if ($) {
+          return "box-inset";
+        } else {
+          return "box-";
+        }
+      })(),
+      float_class(first2(shadow2.offset)) + "px",
+      float_class(second(shadow2.offset)) + "px",
+      float_class(shadow2.blur) + "px",
+      float_class(shadow2.size) + "px",
+      format_color_class(shadow2.color)
+    ]),
+    ""
+  );
+}
 function spacing_name(x, y) {
   return "spacing-" + to_string(x) + "-" + to_string(y);
+}
+function padding_name(top, right, bottom, left) {
+  return "pad-" + to_string(top) + "-" + to_string(right) + "-" + to_string(
+    bottom
+  ) + "-" + to_string(left);
+}
+function padding_name_float(top, right, bottom, left) {
+  return "pad-" + float_class(top) + "-" + float_class(right) + "-" + float_class(
+    bottom
+  ) + "-" + float_class(left);
 }
 function get_style_name(style2) {
   if (style2 instanceof Style) {
@@ -8987,7 +9491,7 @@ function reduce_styles(styles, style2) {
   cache = styles[0];
   existing = styles[1];
   let style_name = get_style_name(style2);
-  let $ = contains(cache, style_name);
+  let $ = contains2(cache, style_name);
   if ($) {
     return [cache, existing];
   } else {
@@ -9303,15 +9807,10 @@ function gather_attr_recursive(loop$classes, loop$node, loop$has, loop$transform
         } else {
           if (width4 instanceof Px) {
             let px2 = width4[0];
-            let class_name = classes_width_exact + " width-px-" + to_string(
-              px2
-            );
-            let style_item = new Single(
-              "width-px-" + to_string(px2),
-              "width",
-              to_string(px2) + "px"
-            );
-            loop$classes = class_name + " " + classes;
+            let val = to_string(px2) + "px";
+            let name = "width-px-" + to_string(px2);
+            let style_item = new Single(name, "width", val);
+            loop$classes = classes_width_exact + " " + name + " " + classes;
             loop$node = node;
             loop$has = add3(has, width());
             loop$transform = transform;
@@ -9373,6 +9872,32 @@ function gather_attr_recursive(loop$classes, loop$node, loop$has, loop$transform
               loop$children = children;
               loop$element_attrs = remaining;
             }
+          } else if (width4 instanceof Pct) {
+            let pct2 = width4[0];
+            let val = to_string(pct2);
+            let name = "width-pct-" + val;
+            let style_item = new Single(name, "width", val + "%");
+            loop$classes = classes_width_exact + " " + name + " " + classes;
+            loop$node = node;
+            loop$has = add3(has, width());
+            loop$transform = transform;
+            loop$styles = prepend(style_item, styles);
+            loop$attrs = attrs;
+            loop$children = children;
+            loop$element_attrs = remaining;
+          } else if (width4 instanceof ScreenPct) {
+            let pct2 = width4[0];
+            let val = to_string(pct2);
+            let name = "width-spct-" + val;
+            let style_item = new Single(name, "width", val + "svw");
+            loop$classes = classes_width_exact + " " + name + " " + classes;
+            loop$node = node;
+            loop$has = add3(has, width());
+            loop$transform = transform;
+            loop$styles = prepend(style_item, styles);
+            loop$attrs = attrs;
+            loop$children = children;
+            loop$element_attrs = remaining;
           } else {
             let $1 = render_width(width4);
             let add_to_flags;
@@ -9406,9 +9931,9 @@ function gather_attr_recursive(loop$classes, loop$node, loop$has, loop$transform
         } else {
           if (height3 instanceof Px) {
             let px2 = height3[0];
-            let val = to_string(px2) + "px";
+            let val = to_string(px2);
             let name = "height-px-" + val;
-            let style_item = new Single(name, "height", val);
+            let style_item = new Single(name, "height", val + "px");
             loop$classes = classes_height_exact + " " + name + " " + classes;
             loop$node = node;
             loop$has = add3(has, height());
@@ -9434,12 +9959,7 @@ function gather_attr_recursive(loop$classes, loop$node, loop$has, loop$transform
             let portion = height3[0];
             let $1 = portion === 1;
             if ($1) {
-              loop$classes = echo(
-                classes_height_fill + " " + classes,
-                void 0,
-                "src/facet/internal/model.gleam",
-                1065
-              );
+              loop$classes = classes_height_fill + " " + classes;
               loop$node = node;
               loop$has = (() => {
                 let _pipe = has;
@@ -9476,6 +9996,32 @@ function gather_attr_recursive(loop$classes, loop$node, loop$has, loop$transform
               loop$children = children;
               loop$element_attrs = remaining;
             }
+          } else if (height3 instanceof Pct) {
+            let pct2 = height3[0];
+            let val = to_string(pct2);
+            let name = "height-pct-" + val;
+            let style_item = new Single(name, "height", val + "%");
+            loop$classes = classes_height_exact + " " + name + " " + classes;
+            loop$node = node;
+            loop$has = add3(has, height());
+            loop$transform = transform;
+            loop$styles = prepend(style_item, styles);
+            loop$attrs = attrs;
+            loop$children = children;
+            loop$element_attrs = remaining;
+          } else if (height3 instanceof ScreenPct) {
+            let pct2 = height3[0];
+            let val = to_string(pct2);
+            let name = "height-spct-" + val;
+            let style_item = new Single(name, "height", val + "svh");
+            loop$classes = classes_height_exact + " " + name + " " + classes;
+            loop$node = node;
+            loop$has = add3(has, height());
+            loop$transform = transform;
+            loop$styles = prepend(style_item, styles);
+            loop$attrs = attrs;
+            loop$children = children;
+            loop$element_attrs = remaining;
           } else {
             let $1 = render_height(height3);
             let add_to_flags;
@@ -9543,11 +10089,30 @@ function encode_styles(options, stylesheet) {
   );
   return object2(_pipe$1);
 }
-function as_el() {
-  return new AsEl();
+function unwrap_decs_helper(acc, attr) {
+  let styles;
+  let trans;
+  styles = acc[0];
+  trans = acc[1];
+  if (attr instanceof StyleClass) {
+    let style2 = attr.style;
+    return [append(toList([style2]), styles), trans];
+  } else if (attr instanceof TransformComponent) {
+    let flag2 = attr[0];
+    let component = attr[1];
+    return [styles, compose_transformation(trans, component)];
+  } else {
+    return [styles, trans];
+  }
 }
-function adjust(size3, height3, vertical) {
-  return new FontSizing(vertical, divideFloat(height3, size3), size3);
+function unwrap_decorations(attrs) {
+  let $ = fold(attrs, [toList([]), untransformed()], unwrap_decs_helper);
+  let styles = $[0];
+  let transform = $[1];
+  return append(toList([new Transform(transform)]), styles);
+}
+function adjust(size4, height3, vertical) {
+  return new FontSizing(vertical, divideFloat(height3, size4), size4);
 }
 function convert_adjustment(adjustment) {
   let line_height = 1.5;
@@ -9560,12 +10125,12 @@ function convert_adjustment(adjustment) {
     adjustment.descender,
     adjustment.lowercase
   ]);
-  let ascender = unwrap(
-    max(lines, compare),
+  let ascender = unwrap2(
+    max2(lines, compare2),
     adjustment.capital
   );
-  let descender = unwrap(
-    max(lines, reverse(compare)),
+  let descender = unwrap2(
+    max2(lines, reverse(compare2)),
     adjustment.descender
   );
   let _block;
@@ -9573,8 +10138,8 @@ function convert_adjustment(adjustment) {
   let _pipe$1 = filter(_pipe, (x) => {
     return x !== descender;
   });
-  let _pipe$2 = max(_pipe$1, reverse(compare));
-  _block = unwrap(_pipe$2, adjustment.baseline);
+  let _pipe$2 = max2(_pipe$1, reverse(compare2));
+  _block = unwrap2(_pipe$2, adjustment.baseline);
   let new_baseline = _block;
   let capital_vertical = 1 - ascender;
   let capital_size = divideFloat(1, ascender - new_baseline);
@@ -10214,7 +10779,7 @@ function render_root(option_list, attributes, child) {
     };
   }
   let embed_style = _block;
-  let _pipe = as_el();
+  let _pipe = new AsEl();
   let _pipe$1 = element4(_pipe, div2, attributes, new Unkeyed(toList([child])));
   return to_html(_pipe$1, embed_style);
 }
@@ -10293,6 +10858,2398 @@ function embed_keyed(static_, opts, styles, children) {
   } else {
     return prepend(["dynamic-stylesheet", dynamic_style_sheet], children);
   }
+}
+function map7(el2, fn_) {
+  if (el2 instanceof Unstyled) {
+    let html = el2[0];
+    return new Unstyled((layout2) => {
+      return map6(html(layout2), fn_);
+    });
+  } else if (el2 instanceof Styled) {
+    let styles = el2.styles;
+    let html = el2.html;
+    return new Styled(
+      styles,
+      (add4) => {
+        return (context) => {
+          return map6(html(add4)(context), fn_);
+        };
+      }
+    );
+  } else if (el2 instanceof Text2) {
+    return el2;
+  } else {
+    return el2;
+  }
+}
+
+// build/dev/javascript/facet/facet/color.mjs
+function rgb(red, green, blue) {
+  return new Rgba(red, green, blue, 1);
+}
+function white() {
+  return rgb(1, 1, 1);
+}
+function oklch(l, c, h, alpha2) {
+  return new Oklch(l, c, h, alpha2);
+}
+function red_500() {
+  return oklch(0.637, 0.237, 25.331, 1);
+}
+function sky_100() {
+  return oklch(0.951, 0.026, 236.824, 1);
+}
+function sky_200() {
+  return oklch(0.901, 0.058, 230.902, 1);
+}
+function gray_50() {
+  return oklch(0.985, 2e-3, 247.839, 1);
+}
+function gray_100() {
+  return oklch(0.967, 3e-3, 264.542, 1);
+}
+function gray_200() {
+  return oklch(0.928, 6e-3, 264.531, 1);
+}
+function gray_300() {
+  return oklch(0.872, 0.01, 258.338, 1);
+}
+function gray_400() {
+  return oklch(0.707, 0.022, 261.325, 1);
+}
+function gray_500() {
+  return oklch(0.551, 0.027, 264.364, 1);
+}
+function gray_800() {
+  return oklch(0.278, 0.033, 256.848, 1);
+}
+function gray_900() {
+  return oklch(0.21, 0.034, 264.665, 1);
+}
+function rgba(red, green, blue, alpha2) {
+  return new Rgba(red, green, blue, alpha2);
+}
+function rgb255(red, green, blue) {
+  return new Rgba(
+    identity(red) / 255,
+    identity(green) / 255,
+    identity(blue) / 255,
+    1
+  );
+}
+
+// build/dev/javascript/facet/colors.mjs
+function vibrant_yellow() {
+  return rgb255(251, 206, 6);
+}
+function peach() {
+  return rgb255(247, 219, 198);
+}
+function border() {
+  return gray_200();
+}
+
+// build/dev/javascript/facet/facet/element.mjs
+function html_attribute(a) {
+  return new Attr(a);
+}
+function map8(element5, transform) {
+  return map7(element5, transform);
+}
+function px(pixels) {
+  return new Px(pixels);
+}
+function shrink() {
+  return new Content2();
+}
+function fill() {
+  return new Fill(1);
+}
+function maximum(length3, max_length) {
+  return new Max(max_length, length3);
+}
+function fill_portion(portion) {
+  return new Fill(portion);
+}
+function pct(portion) {
+  return new Pct(portion);
+}
+function layout_with(options, attributes, child) {
+  return render_root(
+    options,
+    flatten(
+      toList([
+        toList([
+          html_class(
+            join(
+              toList([
+                classes_root,
+                classes_any,
+                classes_single
+              ]),
+              " "
+            )
+          )
+        ]),
+        root_style(),
+        attributes
+      ])
+    ),
+    child
+  );
+}
+function layout(attributes, child) {
+  return layout_with(toList([]), attributes, child);
+}
+function text4(content) {
+  return new Text2(content);
+}
+function el(attributes, child) {
+  return element4(
+    new AsEl(),
+    div2,
+    attributes,
+    new Unkeyed(toList([child]))
+  );
+}
+function below(element5) {
+  return new Nearby(new Below2(), element5);
+}
+function attr_none() {
+  return new NoAttribute();
+}
+function in_front(element5) {
+  return new Nearby(new InFront(), element5);
+}
+function behind_content(element5) {
+  return new Nearby(new Behind2(), element5);
+}
+function width2(length3) {
+  return new Width(length3);
+}
+function height2(length3) {
+  return new Height(length3);
+}
+function row(attributes, children) {
+  return element4(
+    new AsRow(),
+    div2,
+    append(
+      toList([
+        html_class(
+          classes_content_left + " " + classes_content_center_x
+        ),
+        width2(shrink()),
+        height2(shrink())
+      ]),
+      attributes
+    ),
+    new Unkeyed(children)
+  );
+}
+function column(attributes, children) {
+  return element4(
+    new AsColumn(),
+    div2,
+    append(
+      toList([
+        html_class(
+          classes_content_top + " " + classes_content_left
+        ),
+        width2(shrink()),
+        height2(shrink())
+      ]),
+      attributes
+    ),
+    new Unkeyed(children)
+  );
+}
+function link(attributes, url, label) {
+  return element4(
+    new AsEl(),
+    new NodeName("a"),
+    append(
+      toList([
+        new Attr(href(url)),
+        new Attr(rel("noopener noreferrer")),
+        width2(shrink()),
+        height2(shrink()),
+        html_class(
+          classes_content_center_y + " " + classes_content_center_x + " " + classes_link
+        )
+      ]),
+      attributes
+    ),
+    new Unkeyed(toList([label]))
+  );
+}
+function rotate2(angle) {
+  return new TransformComponent(
+    rotate(),
+    new Rotate([0, 0, 1], angle)
+  );
+}
+function move_up(distance) {
+  return new TransformComponent(
+    move_y(),
+    new MoveY(0 - distance)
+  );
+}
+function move_down(distance) {
+  return new TransformComponent(
+    move_y(),
+    new MoveY(distance)
+  );
+}
+function padding2(pixels) {
+  let p2 = identity(pixels);
+  return new StyleClass(
+    padding(),
+    new PaddingStyle("p-" + to_string(pixels), p2, p2, p2, p2)
+  );
+}
+function padding_xy(x, y) {
+  let $ = x === y;
+  if ($) {
+    return padding2(x);
+  } else {
+    let x_float = identity(x);
+    let y_float = identity(y);
+    return new StyleClass(
+      padding(),
+      new PaddingStyle(
+        "p-" + to_string(x) + "-" + to_string(y),
+        y_float,
+        x_float,
+        y_float,
+        x_float
+      )
+    );
+  }
+}
+function padding_each(top, right, bottom, left) {
+  let $ = top === right && top === bottom && top === left;
+  if ($) {
+    let top_float = identity(top);
+    return new StyleClass(
+      padding(),
+      new PaddingStyle(
+        "p-" + to_string(top),
+        top_float,
+        top_float,
+        top_float,
+        top_float
+      )
+    );
+  } else {
+    return new StyleClass(
+      padding(),
+      new PaddingStyle(
+        padding_name(top, right, bottom, left),
+        identity(top),
+        identity(right),
+        identity(bottom),
+        identity(left)
+      )
+    );
+  }
+}
+function center_x2() {
+  return new AlignX(new CenterX2());
+}
+function center_y2() {
+  return new AlignY(new CenterY2());
+}
+function align_bottom2() {
+  return new AlignY(new Bottom2());
+}
+function align_left() {
+  return new AlignX(new Left2());
+}
+function align_right2() {
+  return new AlignX(new Right2());
+}
+function space_evenly() {
+  return new Class2(spacing(), classes_space_evenly);
+}
+function spacing2(pixels) {
+  return new StyleClass(
+    spacing(),
+    new SpacingStyle(spacing_name(pixels, pixels), pixels, pixels)
+  );
+}
+function paragraph(attributes, children) {
+  return element4(
+    new AsParagraph(),
+    div2,
+    append(
+      toList([
+        new Describe(new Paragraph()),
+        width2(fill()),
+        spacing2(5)
+      ]),
+      attributes
+    ),
+    new Unkeyed(children)
+  );
+}
+function spacing_xy(x, y) {
+  return new StyleClass(
+    spacing(),
+    new SpacingStyle(spacing_name(x, y), x, y)
+  );
+}
+function transition2(properties, duration_ms) {
+  return new StyleClass(
+    transition(),
+    new Single(
+      "transition-" + join(properties, "-") + "-" + to_string(
+        duration_ms
+      ),
+      "transition",
+      join(properties, ", ") + " " + to_string(duration_ms) + "ms"
+    )
+  );
+}
+function alpha(o) {
+  let _block;
+  let _pipe = o;
+  let _pipe$1 = max3(_pipe, 0);
+  let _pipe$2 = min(_pipe$1, 1);
+  _block = ((x) => {
+    return 1 - x;
+  })(_pipe$2);
+  let transparency2 = _block;
+  return new StyleClass(
+    transparency(),
+    new Transparency(
+      "transparency-" + float_class(o),
+      transparency2
+    )
+  );
+}
+function transparent(is_transparent) {
+  if (is_transparent) {
+    return alpha(0);
+  } else {
+    return alpha(1);
+  }
+}
+function scrollbars() {
+  return new Class2(overflow(), classes_scrollbars);
+}
+function scrollbar_y() {
+  return new Class2(overflow(), classes_scrollbars_y);
+}
+function clip() {
+  return new Class2(overflow(), classes_clip);
+}
+function pointer() {
+  return new Class2(cursor(), classes_cursor_pointer);
+}
+function cursor2() {
+  return new Class2(cursor(), classes_cursor_text);
+}
+function hovered(decs) {
+  return new StyleClass(
+    hover(),
+    new PseudoSelector(
+      new Hover(),
+      unwrap_decorations(decs)
+    )
+  );
+}
+var none4 = /* @__PURE__ */ new Empty2();
+function vspace(height_) {
+  return el(toList([width2(fill()), height2(px(height_))]), none4);
+}
+
+// build/dev/javascript/facet/facet/background.mjs
+var ToUp = class extends CustomType {
+};
+var ToDown = class extends CustomType {
+};
+var ToRight = class extends CustomType {
+};
+var ToTopRight = class extends CustomType {
+};
+var ToBottomRight = class extends CustomType {
+};
+var ToLeft = class extends CustomType {
+};
+var ToTopLeft = class extends CustomType {
+};
+var ToBottomLeft = class extends CustomType {
+};
+var ToAngle = class extends CustomType {
+  constructor($0) {
+    super();
+    this[0] = $0;
+  }
+};
+var ColorStep = class extends CustomType {
+  constructor($0) {
+    super();
+    this[0] = $0;
+  }
+};
+var PercentStep = class extends CustomType {
+  constructor($0, $1) {
+    super();
+    this[0] = $0;
+    this[1] = $1;
+  }
+};
+function color(clr) {
+  return new StyleClass(
+    bg_color(),
+    new Colored(
+      "bg-" + format_color_class(clr),
+      "background-color",
+      clr
+    )
+  );
+}
+function percent(pct2, color4) {
+  return new PercentStep(pct2, color4);
+}
+function direction_class_prop(direction) {
+  if (direction instanceof ToUp) {
+    return ["to-up", "to up"];
+  } else if (direction instanceof ToDown) {
+    return ["to-down", "to down"];
+  } else if (direction instanceof ToRight) {
+    return ["to-right", "to right"];
+  } else if (direction instanceof ToTopRight) {
+    return ["to-top-right", "to top right"];
+  } else if (direction instanceof ToBottomRight) {
+    return ["to-bottom-right", "to bottom right"];
+  } else if (direction instanceof ToLeft) {
+    return ["to-left", "to left"];
+  } else if (direction instanceof ToTopLeft) {
+    return ["to-top-left", "to topleft"];
+  } else if (direction instanceof ToBottomLeft) {
+    return ["to-bottom-left", "to bottom left"];
+  } else {
+    let angle = direction[0];
+    return [float_class(angle), float_to_string(angle) + "rad"];
+  }
+}
+function gradient(direction, steps) {
+  let to_bg_color = (clr) => {
+    return new StyleClass(
+      bg_color(),
+      new Colored(
+        "bg-" + format_color_class(clr),
+        "background-color",
+        clr
+      )
+    );
+  };
+  if (steps instanceof Empty) {
+    return new NoAttribute();
+  } else {
+    let $ = steps.tail;
+    if ($ instanceof Empty) {
+      let $1 = steps.head;
+      if ($1 instanceof ColorStep) {
+        let clr = $1[0];
+        return to_bg_color(clr);
+      } else if ($1 instanceof PercentStep) {
+        let clr = $1[1];
+        return to_bg_color(clr);
+      } else {
+        let clr = $1[1];
+        return to_bg_color(clr);
+      }
+    } else {
+      let $1 = direction_class_prop(direction);
+      let direction_class;
+      let direction_prop;
+      direction_class = $1[0];
+      direction_prop = $1[1];
+      let _block;
+      let _pipe = toList([direction_class]);
+      let _pipe$1 = append(
+        _pipe,
+        map2(
+          steps,
+          (step3) => {
+            if (step3 instanceof ColorStep) {
+              let clr = step3[0];
+              return format_color_class(clr);
+            } else if (step3 instanceof PercentStep) {
+              let position = step3[0];
+              let clr = step3[1];
+              return format_color_class(clr) + "-" + to_string(
+                position
+              ) + "-pct";
+            } else {
+              let position = step3[0];
+              let clr = step3[1];
+              return format_color_class(clr) + "-" + to_string(
+                position
+              ) + "-px";
+            }
+          }
+        )
+      );
+      _block = join(_pipe$1, "-");
+      let class_parts = _block;
+      let _block$1;
+      let _pipe$2 = map2(
+        steps,
+        (step3) => {
+          if (step3 instanceof ColorStep) {
+            let clr = step3[0];
+            return format_color(clr);
+          } else if (step3 instanceof PercentStep) {
+            let position = step3[0];
+            let clr = step3[1];
+            return format_color(clr) + " " + to_string(
+              position
+            ) + "%";
+          } else {
+            let position = step3[0];
+            let clr = step3[1];
+            return format_color(clr) + " " + to_string(
+              position
+            ) + "px";
+          }
+        }
+      );
+      let _pipe$3 = prepend2(_pipe$2, direction_prop);
+      _block$1 = join(_pipe$3, ", ");
+      let color_parts = _block$1;
+      return new StyleClass(
+        bg_gradient(),
+        new Single(
+          "bg-grad-" + class_parts,
+          "background-image",
+          "linear-gradient(" + color_parts + ")"
+        )
+      );
+    }
+  }
+}
+
+// build/dev/javascript/facet/facet/border.mjs
+function color2(clr) {
+  return new StyleClass(
+    border_color(),
+    new Colored(
+      "bc-" + format_color_class(clr),
+      "border-color",
+      clr
+    )
+  );
+}
+function width3(v) {
+  return new StyleClass(
+    border_width(),
+    new BorderWidth("b-" + to_string(v), v, v, v, v)
+  );
+}
+function width_xy(x, y) {
+  return new StyleClass(
+    border_width(),
+    new BorderWidth(
+      "bw-" + to_string(x) + "-" + to_string(y),
+      y,
+      x,
+      y,
+      x
+    )
+  );
+}
+function width_each(bottom, left, right, top) {
+  let $ = top === bottom && left === right;
+  if ($) {
+    let $1 = top === right;
+    if ($1) {
+      return width3(top);
+    } else {
+      return width_xy(left, top);
+    }
+  } else {
+    return new StyleClass(
+      border_width(),
+      new BorderWidth(
+        "bw-" + to_string(top) + "-" + to_string(right) + "-" + to_string(
+          bottom
+        ) + "-" + to_string(left),
+        top,
+        right,
+        bottom,
+        left
+      )
+    );
+  }
+}
+function solid() {
+  return new Class2(border_style(), classes_border_solid);
+}
+function dashed() {
+  return new Class2(border_style(), classes_border_dashed);
+}
+function rounded(radius) {
+  return new StyleClass(
+    border_round(),
+    new Single(
+      "br-" + to_string(radius),
+      "border-radius",
+      to_string(radius) + "px"
+    )
+  );
+}
+function rounded_pct(radius) {
+  return new StyleClass(
+    border_round(),
+    new Single(
+      "br-" + to_string(radius) + "-pct",
+      "border-radius",
+      to_string(radius) + "%"
+    )
+  );
+}
+function shadow(color4, offset, blur, size4) {
+  let shade = new InsetShadow(
+    color4,
+    (() => {
+      let _pipe = offset;
+      let _pipe$1 = map_first(_pipe, identity);
+      return map_second(_pipe$1, identity);
+    })(),
+    identity(blur),
+    identity(size4),
+    false
+  );
+  return new StyleClass(
+    shadows(),
+    new Single(
+      box_shadow_class(shade),
+      "box-shadow",
+      format_box_shadow(shade)
+    )
+  );
+}
+
+// build/dev/javascript/facet/facet/font.mjs
+function color3(font_color2) {
+  return new StyleClass(
+    font_color(),
+    new Colored(
+      "fc-" + format_color_class(font_color2),
+      "color",
+      font_color2
+    )
+  );
+}
+function family(families) {
+  return new StyleClass(
+    font_family(),
+    new FontFamily(
+      fold(families, "ff-", render_font_class_name),
+      families
+    )
+  );
+}
+function sans_serif() {
+  return new SansSerif();
+}
+function typeface(name) {
+  return new Typeface(name);
+}
+function size3(i) {
+  return new StyleClass(font_size(), new FontSize(i));
+}
+function letter_spacing2(offset) {
+  return new StyleClass(
+    letter_spacing(),
+    new Single(
+      "ls-" + float_class(offset),
+      "letter-spacing",
+      float_to_string(offset) + "px"
+    )
+  );
+}
+function center() {
+  return new Class2(font_alignment(), classes_text_center);
+}
+function semi_bold() {
+  return new Class2(font_weight(), classes_text_semi_bold);
+}
+function medium() {
+  return new Class2(font_weight(), classes_text_medium);
+}
+function variant(var$) {
+  if (var$ instanceof VariantActive) {
+    let name = var$[0];
+    return new Class2(font_variant(), "v-" + name);
+  } else if (var$ instanceof VariantOff) {
+    let name = var$[0];
+    return new Class2(font_variant(), "v-" + name + "-off");
+  } else {
+    let name = var$[0];
+    let index4 = var$[1];
+    return new StyleClass(
+      font_variant(),
+      new Single(
+        "v-" + name + "-" + to_string(index4),
+        "font-feature-settings",
+        '"' + name + '" ' + to_string(index4)
+      )
+    );
+  }
+}
+function tabular_numbers() {
+  return new VariantActive("tnum");
+}
+
+// build/dev/javascript/lustre/lustre/event.mjs
+function is_immediate_event(name) {
+  if (name === "input") {
+    return true;
+  } else if (name === "change") {
+    return true;
+  } else if (name === "focus") {
+    return true;
+  } else if (name === "focusin") {
+    return true;
+  } else if (name === "focusout") {
+    return true;
+  } else if (name === "blur") {
+    return true;
+  } else if (name === "select") {
+    return true;
+  } else {
+    return false;
+  }
+}
+function on(name, handler) {
+  return event(
+    name,
+    map3(handler, (msg) => {
+      return new Handler(false, false, msg);
+    }),
+    empty_list,
+    never,
+    never,
+    is_immediate_event(name),
+    0,
+    0
+  );
+}
+function on_click(msg) {
+  return on("click", success(msg));
+}
+function on_input(msg) {
+  return on(
+    "input",
+    subfield(
+      toList(["target", "value"]),
+      string2,
+      (value2) => {
+        return success(msg(value2));
+      }
+    )
+  );
+}
+
+// build/dev/javascript/facet/facet/events.mjs
+function on_click2(msg) {
+  return new Attr(on_click(msg));
+}
+function on2(event_name, decoder) {
+  return new Attr(on(event_name, decoder));
+}
+function key() {
+  return at(toList(["key"]), string2);
+}
+function on_input2(msg) {
+  return new Attr(on_input(msg));
+}
+
+// build/dev/javascript/facet/facet/region.mjs
+function heading(level) {
+  return new Describe(new Heading(level));
+}
+function announce() {
+  return new Describe(new LivePolite());
+}
+
+// build/dev/javascript/facet/facet/input.mjs
+var Placeholder = class extends CustomType {
+  constructor(attrs, content) {
+    super();
+    this.attrs = attrs;
+    this.content = content;
+  }
+};
+var OnRight3 = class extends CustomType {
+};
+var OnLeft3 = class extends CustomType {
+};
+var Above3 = class extends CustomType {
+};
+var Label2 = class extends CustomType {
+  constructor(location, attrs, content) {
+    super();
+    this.location = location;
+    this.attrs = attrs;
+    this.content = content;
+  }
+};
+var HiddenLabel = class extends CustomType {
+  constructor(text5) {
+    super();
+    this.text = text5;
+  }
+};
+var TextInputNode = class extends CustomType {
+  constructor($0) {
+    super();
+    this[0] = $0;
+  }
+};
+var TextArea = class extends CustomType {
+};
+var TextInput = class extends CustomType {
+  constructor(type_2, spellchecked, autofill) {
+    super();
+    this.type_ = type_2;
+    this.spellchecked = spellchecked;
+    this.autofill = autofill;
+  }
+};
+var Idle = class extends CustomType {
+};
+var Selected = class extends CustomType {
+};
+var RadioOption = class extends CustomType {
+  constructor(value2, view3) {
+    super();
+    this.value = value2;
+    this.view = view3;
+  }
+};
+var Thumb = class extends CustomType {
+  constructor(attrs) {
+    super();
+    this.attrs = attrs;
+  }
+};
+var Box = class extends CustomType {
+  constructor(bottom, left, right, top) {
+    super();
+    this.bottom = bottom;
+    this.left = left;
+    this.right = right;
+    this.top = top;
+  }
+};
+var Redistributed = class extends CustomType {
+  constructor(full_parent, parent, wrapper, input, cover) {
+    super();
+    this.full_parent = full_parent;
+    this.parent = parent;
+    this.wrapper = wrapper;
+    this.input = input;
+    this.cover = cover;
+  }
+};
+var Row = class extends CustomType {
+};
+var Column = class extends CustomType {
+};
+function placeholder(attrs, content) {
+  return new Placeholder(attrs, content);
+}
+function label_right(attrs, content) {
+  return new Label2(new OnRight3(), attrs, content);
+}
+function label_above(attrs, content) {
+  return new Label2(new Above3(), attrs, content);
+}
+function is_stacked(label) {
+  if (label instanceof Label2) {
+    let $ = label.location;
+    if ($ instanceof OnRight3) {
+      return false;
+    } else if ($ instanceof OnLeft3) {
+      return false;
+    } else if ($ instanceof Above3) {
+      return true;
+    } else {
+      return true;
+    }
+  } else {
+    return true;
+  }
+}
+function hidden_label_attribute(label) {
+  if (label instanceof Label2) {
+    return new NoAttribute();
+  } else {
+    let text_label = label.text;
+    return new Describe(new Label(text_label));
+  }
+}
+function has_focus_style(attr) {
+  if (attr instanceof StyleClass) {
+    let $ = attr.style;
+    if ($ instanceof PseudoSelector) {
+      let $1 = $[0];
+      if ($1 instanceof Focus) {
+        return true;
+      } else {
+        return false;
+      }
+    } else {
+      return false;
+    }
+  } else {
+    return false;
+  }
+}
+function focus_default(attrs) {
+  let $ = any(attrs, has_focus_style);
+  if ($) {
+    return new NoAttribute();
+  } else {
+    return html_class("focusable");
+  }
+}
+function default_checkbox(checked) {
+  return el(
+    toList([
+      html_class("focusable"),
+      width2(px(14)),
+      height2(px(14)),
+      color3(white()),
+      center_y2(),
+      size3(9),
+      center(),
+      rounded(3),
+      color2(
+        (() => {
+          if (checked) {
+            return rgb(59 / 255, 153 / 255, 252 / 255);
+          } else {
+            return rgb(211 / 255, 211 / 255, 211 / 255);
+          }
+        })()
+      ),
+      shadow(
+        (() => {
+          if (checked) {
+            return rgba(238 / 255, 238 / 255, 238 / 255, 0);
+          } else {
+            return rgb(238 / 255, 238 / 255, 238 / 255);
+          }
+        })(),
+        [0, 0],
+        1,
+        1
+      ),
+      color(
+        (() => {
+          if (checked) {
+            return rgb(59 / 255, 153 / 255, 252 / 255);
+          } else {
+            return white();
+          }
+        })()
+      ),
+      width3(
+        (() => {
+          if (checked) {
+            return 0;
+          } else {
+            return 1;
+          }
+        })()
+      ),
+      in_front(
+        el(
+          toList([
+            color2(white()),
+            height2(px(6)),
+            width2(px(9)),
+            rotate2(-45),
+            center_x2(),
+            center_y2(),
+            move_up(1),
+            transparent(!checked),
+            width_each(2, 2, 0, 0)
+          ]),
+          none4
+        )
+      )
+    ]),
+    none4
+  );
+}
+function default_thumb() {
+  return new Thumb(
+    toList([
+      width2(px(16)),
+      height2(px(16)),
+      rounded(8),
+      width3(1),
+      color2(rgb(0.5, 0.5, 0.5)),
+      color(white())
+    ])
+  );
+}
+function is_fill(loop$len) {
+  while (true) {
+    let len = loop$len;
+    if (len instanceof Px) {
+      return false;
+    } else if (len instanceof Content2) {
+      return false;
+    } else if (len instanceof Fill) {
+      return true;
+    } else if (len instanceof Pct) {
+      return false;
+    } else if (len instanceof ScreenPct) {
+      return false;
+    } else if (len instanceof Min) {
+      let l = len[1];
+      loop$len = l;
+    } else {
+      let l = len[1];
+      loop$len = l;
+    }
+  }
+}
+function redistribute_over(is_multiline, stacked) {
+  return (els, attr) => {
+    if (attr instanceof NoAttribute) {
+      return els;
+    } else if (attr instanceof Attr) {
+      return new Redistributed(
+        els.full_parent,
+        els.parent,
+        els.wrapper,
+        prepend(attr, els.input),
+        els.cover
+      );
+    } else if (attr instanceof Describe) {
+      return new Redistributed(
+        els.full_parent,
+        els.parent,
+        els.wrapper,
+        prepend(attr, els.input),
+        els.cover
+      );
+    } else if (attr instanceof Class2) {
+      return new Redistributed(
+        els.full_parent,
+        prepend(attr, els.parent),
+        els.wrapper,
+        els.input,
+        els.cover
+      );
+    } else if (attr instanceof StyleClass) {
+      let $ = attr.style;
+      if ($ instanceof FontFamily) {
+        return new Redistributed(
+          prepend(attr, els.full_parent),
+          els.parent,
+          els.wrapper,
+          els.input,
+          els.cover
+        );
+      } else if ($ instanceof FontSize) {
+        return new Redistributed(
+          prepend(attr, els.full_parent),
+          els.parent,
+          els.wrapper,
+          els.input,
+          els.cover
+        );
+      } else if ($ instanceof SpacingStyle) {
+        return new Redistributed(
+          prepend(attr, els.full_parent),
+          prepend(attr, els.parent),
+          prepend(attr, els.wrapper),
+          prepend(attr, els.input),
+          els.cover
+        );
+      } else if ($ instanceof BorderWidth) {
+        return new Redistributed(
+          els.full_parent,
+          prepend(attr, els.parent),
+          els.wrapper,
+          els.input,
+          prepend(attr, els.cover)
+        );
+      } else if ($ instanceof PaddingStyle) {
+        let cls = attr.invalidation_key;
+        let t = $[1];
+        let r = $[2];
+        let b = $[3];
+        let l = $[4];
+        if (is_multiline) {
+          return new Redistributed(
+            els.full_parent,
+            prepend(attr, els.parent),
+            els.wrapper,
+            els.input,
+            prepend(attr, els.cover)
+          );
+        } else {
+          let new_height = html_attribute(
+            style(
+              "height",
+              "calc(1.0em + " + float_to_string(2 * min(t, b)) + "px)"
+            )
+          );
+          let new_line_height = html_attribute(
+            style(
+              "line-height",
+              "calc(1.0em + " + float_to_string(2 * min(t, b)) + "px)"
+            )
+          );
+          let new_top = t - min(t, b);
+          let new_bottom = b - min(t, b);
+          let reduced_vertical_padding = new StyleClass(
+            padding(),
+            new PaddingStyle(
+              padding_name_float(new_top, r, new_bottom, l),
+              new_top,
+              r,
+              new_bottom,
+              l
+            )
+          );
+          return new Redistributed(
+            els.full_parent,
+            prepend(reduced_vertical_padding, els.parent),
+            els.wrapper,
+            prepend(new_height, prepend(new_line_height, els.input)),
+            prepend(attr, els.cover)
+          );
+        }
+      } else if ($ instanceof Transform) {
+        return new Redistributed(
+          els.full_parent,
+          prepend(attr, els.parent),
+          els.wrapper,
+          els.input,
+          prepend(attr, els.cover)
+        );
+      } else {
+        let flag2 = attr.invalidation_key;
+        let cls = $;
+        return new Redistributed(
+          els.full_parent,
+          prepend(attr, els.parent),
+          els.wrapper,
+          els.input,
+          els.cover
+        );
+      }
+    } else if (attr instanceof AlignY) {
+      return new Redistributed(
+        prepend(attr, els.full_parent),
+        els.parent,
+        els.wrapper,
+        els.input,
+        els.cover
+      );
+    } else if (attr instanceof AlignX) {
+      return new Redistributed(
+        prepend(attr, els.full_parent),
+        els.parent,
+        els.wrapper,
+        els.input,
+        els.cover
+      );
+    } else if (attr instanceof Width) {
+      let width$1 = attr[0];
+      let $ = is_fill(width$1);
+      if ($) {
+        return new Redistributed(
+          prepend(attr, els.full_parent),
+          prepend(attr, els.parent),
+          els.wrapper,
+          prepend(attr, els.input),
+          els.cover
+        );
+      } else {
+        if (stacked) {
+          return new Redistributed(
+            prepend(attr, els.full_parent),
+            els.parent,
+            els.wrapper,
+            els.input,
+            els.cover
+          );
+        } else {
+          return new Redistributed(
+            els.full_parent,
+            prepend(attr, els.parent),
+            els.wrapper,
+            els.input,
+            els.cover
+          );
+        }
+      }
+    } else if (attr instanceof Height) {
+      let height$1 = attr[0];
+      if (stacked) {
+        let $ = is_fill(height$1);
+        if ($) {
+          return new Redistributed(
+            prepend(attr, els.full_parent),
+            prepend(attr, els.parent),
+            els.wrapper,
+            els.input,
+            els.cover
+          );
+        } else {
+          return new Redistributed(
+            els.full_parent,
+            prepend(attr, els.parent),
+            els.wrapper,
+            els.input,
+            els.cover
+          );
+        }
+      } else {
+        return new Redistributed(
+          prepend(attr, els.full_parent),
+          prepend(attr, els.parent),
+          els.wrapper,
+          els.input,
+          els.cover
+        );
+      }
+    } else if (attr instanceof Nearby) {
+      return new Redistributed(
+        els.full_parent,
+        prepend(attr, els.parent),
+        els.wrapper,
+        els.input,
+        els.cover
+      );
+    } else {
+      return new Redistributed(
+        els.full_parent,
+        els.parent,
+        els.wrapper,
+        prepend(attr, els.input),
+        els.cover
+      );
+    }
+  };
+}
+function redistribute(is_multiline, stacked, attrs) {
+  let _pipe = attrs;
+  let _pipe$1 = fold(
+    _pipe,
+    new Redistributed(
+      toList([]),
+      toList([]),
+      toList([]),
+      toList([]),
+      toList([])
+    ),
+    (attr, redist) => {
+      return redistribute_over(is_multiline, stacked)(attr, redist);
+    }
+  );
+  return ((redist) => {
+    return new Redistributed(
+      reverse3(redist.full_parent),
+      reverse3(redist.parent),
+      reverse3(redist.wrapper),
+      reverse3(redist.input),
+      reverse3(redist.cover)
+    );
+  })(_pipe$1);
+}
+function apply_label(attrs, label, input) {
+  if (label instanceof Label2) {
+    let position = label.location;
+    let label_attrs = label.attrs;
+    let label_child = label.content;
+    let label_element = element4(
+      new AsEl(),
+      div2,
+      label_attrs,
+      new Unkeyed(toList([label_child]))
+    );
+    if (position instanceof OnRight3) {
+      return element4(
+        new AsRow(),
+        new NodeName("label"),
+        prepend(html_class(classes_input_label), attrs),
+        new Unkeyed(toList([input, label_element]))
+      );
+    } else if (position instanceof OnLeft3) {
+      return element4(
+        new AsRow(),
+        new NodeName("label"),
+        prepend(html_class(classes_input_label), attrs),
+        new Unkeyed(toList([label_element, input]))
+      );
+    } else if (position instanceof Above3) {
+      return element4(
+        new AsColumn(),
+        new NodeName("label"),
+        prepend(html_class(classes_input_label), attrs),
+        new Unkeyed(toList([label_element, input]))
+      );
+    } else {
+      return element4(
+        new AsColumn(),
+        new NodeName("label"),
+        prepend(html_class(classes_input_label), attrs),
+        new Unkeyed(toList([input, label_element]))
+      );
+    }
+  } else {
+    return element4(
+      new AsColumn(),
+      new NodeName("label"),
+      attrs,
+      new Unkeyed(toList([input]))
+    );
+  }
+}
+function is_hidden_label(label) {
+  if (label instanceof HiddenLabel) {
+    return true;
+  } else {
+    return false;
+  }
+}
+function default_radio_option(option_label) {
+  return (status) => {
+    return row(
+      toList([spacing2(10), align_left(), width2(shrink())]),
+      toList([
+        el(
+          toList([
+            width2(px(14)),
+            height2(px(14)),
+            color(white()),
+            rounded(7),
+            (() => {
+              if (status instanceof Selected) {
+                return html_class("focusable");
+              } else {
+                return new NoAttribute();
+              }
+            })(),
+            width3(
+              (() => {
+                if (status instanceof Selected) {
+                  return 5;
+                } else {
+                  return 1;
+                }
+              })()
+            ),
+            color2(
+              (() => {
+                if (status instanceof Selected) {
+                  return rgb(59 / 255, 153 / 255, 252 / 255);
+                } else {
+                  return rgb(208 / 255, 208 / 255, 208 / 255);
+                }
+              })()
+            )
+          ]),
+          none4
+        ),
+        el(
+          toList([width2(fill()), html_class("unfocusable")]),
+          option_label
+        )
+      ])
+    );
+  };
+}
+function option(value2, content) {
+  return new RadioOption(value2, default_radio_option(content));
+}
+function view_horizontal_thumb(factor, thumb_attributes, track_height) {
+  return row(
+    toList([
+      height2(unwrap(track_height, fill())),
+      center_y2(),
+      width2(fill())
+    ]),
+    toList([
+      el(
+        toList([
+          height2(new Content2()),
+          width2(fill_portion(round(factor * 1e4)))
+        ]),
+        none4
+      ),
+      el(
+        prepend(center_y2(), thumb_attributes),
+        none4
+      ),
+      el(
+        toList([
+          height2(unwrap(track_height, fill())),
+          width2(
+            fill_portion(
+              round(absolute_value(1 - factor) * 1e4)
+            )
+          )
+        ]),
+        none4
+      )
+    ])
+  );
+}
+function view_vertical_thumb(factor, thumb_attributes, track_width) {
+  return column(
+    toList([
+      height2(fill()),
+      echo(
+        width2(unwrap(track_width, fill())),
+        void 0,
+        "src/facet/input.gleam",
+        832
+      ),
+      center_x2()
+    ]),
+    toList([
+      el(
+        toList([
+          height2(
+            fill_portion(
+              round(absolute_value(1 - factor) * 1e4)
+            )
+          )
+        ]),
+        none4
+      ),
+      el(
+        prepend(center_x2(), thumb_attributes),
+        none4
+      ),
+      el(
+        toList([
+          height2(
+            fill_portion(round(factor * 1e4))
+          )
+        ]),
+        none4
+      )
+    ])
+  );
+}
+function slider(attributes, on_change2, label_val, min4, max5, value2, thumb, step3) {
+  let thumb_attributes;
+  thumb_attributes = thumb.attrs;
+  let width$1 = get_width(thumb_attributes);
+  let height$1 = get_height(thumb_attributes);
+  let track_height = get_height(attributes);
+  let track_width = get_width(attributes);
+  let _block;
+  if (track_height instanceof Some) {
+    let $ = track_height[0];
+    if ($ instanceof Px && track_width instanceof Some) {
+      let $1 = track_width[0];
+      if ($1 instanceof Px) {
+        let h = $[0];
+        let w = $1[0];
+        _block = h > w;
+      } else {
+        _block = false;
+      }
+    } else if ($ instanceof Fill && track_width instanceof Some) {
+      let $1 = track_width[0];
+      if ($1 instanceof Px) {
+        _block = true;
+      } else {
+        _block = false;
+      }
+    } else {
+      _block = false;
+    }
+  } else if (track_width instanceof None) {
+    _block = false;
+  } else {
+    _block = false;
+  }
+  let vertical = _block;
+  let spacing3 = get_spacing(attributes, [5, 5]);
+  let spacing_x = spacing3[0];
+  let spacing_y = spacing3[1];
+  let factor = divideFloat(value2 - min4, max5 - min4);
+  let _block$1;
+  if (width$1 instanceof Some) {
+    let $ = width$1[0];
+    if ($ instanceof Px) {
+      let px2 = $[0];
+      _block$1 = to_string(px2) + "px";
+    } else {
+      _block$1 = "100%";
+    }
+  } else {
+    _block$1 = "20px";
+  }
+  let thumb_width_string = _block$1;
+  let _block$2;
+  if (height$1 instanceof Some) {
+    let $ = height$1[0];
+    if ($ instanceof Px) {
+      let px2 = $[0];
+      _block$2 = to_string(px2) + "px";
+    } else {
+      _block$2 = "100%";
+    }
+  } else {
+    _block$2 = "20px";
+  }
+  let thumb_height_string = _block$2;
+  let class_name = "thmb-" + thumb_width_string + "-" + thumb_height_string;
+  let thumb_shadow_style = toList([
+    new Property2("width", thumb_width_string),
+    new Property2("height", thumb_height_string)
+  ]);
+  let _block$3;
+  if (vertical) {
+    _block$3 = view_vertical_thumb(
+      factor,
+      append(
+        toList([html_class("focusable-thumb")]),
+        thumb_attributes
+      ),
+      track_width
+    );
+  } else {
+    _block$3 = view_horizontal_thumb(
+      factor,
+      prepend(html_class("focusable-thumb"), thumb_attributes),
+      track_height
+    );
+  }
+  let thumb$1 = _block$3;
+  return apply_label(
+    flatten(
+      toList([
+        (() => {
+          let $ = is_hidden_label(label_val);
+          if ($) {
+            return toList([new NoAttribute()]);
+          } else {
+            return toList([spacing_xy(spacing_x, spacing_y)]);
+          }
+        })(),
+        toList([announce()]),
+        toList([
+          width2(
+            (() => {
+              if (track_width instanceof Some) {
+                let $ = track_width[0];
+                if ($ instanceof Px) {
+                  return shrink();
+                } else {
+                  let x = $;
+                  return x;
+                }
+              } else {
+                return fill();
+              }
+            })()
+          )
+        ]),
+        toList([
+          height2(
+            (() => {
+              if (track_height instanceof Some) {
+                let $ = track_height[0];
+                if ($ instanceof Px) {
+                  return shrink();
+                } else {
+                  let x = $;
+                  return x;
+                }
+              } else {
+                return shrink();
+              }
+            })()
+          )
+        ])
+      ])
+    ),
+    label_val,
+    row(
+      toList([
+        width2(unwrap(track_width, fill())),
+        height2(unwrap(track_height, px(20))),
+        behind_content(
+          el(toList([alpha(0)]), thumb$1)
+        )
+      ]),
+      toList([
+        element4(
+          new AsEl(),
+          new NodeName("input"),
+          flatten(
+            toList([
+              toList([hidden_label_attribute(label_val)]),
+              toList([
+                new StyleClass(
+                  active(),
+                  new Style(
+                    'input[type="range"].' + class_name + "::-moz-range-thumb",
+                    thumb_shadow_style
+                  )
+                ),
+                new StyleClass(
+                  hover(),
+                  new Style(
+                    'input[type="range"].' + class_name + "::-webkit-slider-thumb",
+                    thumb_shadow_style
+                  )
+                ),
+                new StyleClass(
+                  focus(),
+                  new Style(
+                    'input[type="range"].' + class_name + "::-ms-thumb",
+                    thumb_shadow_style
+                  )
+                ),
+                new Attr(
+                  class$(
+                    class_name + " ui-slide-bar focusable-parent"
+                  )
+                ),
+                on_input2(
+                  (str) => {
+                    let $ = parse_float(str);
+                    if ($ instanceof Ok) {
+                      let val = $[0];
+                      return on_change2(val);
+                    } else {
+                      return on_change2(0);
+                    }
+                  }
+                ),
+                new Attr(type_("range")),
+                new Attr(
+                  step2(
+                    (() => {
+                      if (step3 instanceof Some) {
+                        let step$1 = step3[0];
+                        return float_to_string(step$1);
+                      } else {
+                        return "any";
+                      }
+                    })()
+                  )
+                ),
+                new Attr(min3(float_to_string(min4))),
+                new Attr(max4(float_to_string(max5))),
+                new Attr(value(float_to_string(value2))),
+                (() => {
+                  if (vertical) {
+                    return new Attr(
+                      attribute2("orient", "vertical")
+                    );
+                  } else {
+                    return new NoAttribute();
+                  }
+                })(),
+                width2(
+                  (() => {
+                    let $ = echo(
+                      vertical,
+                      void 0,
+                      "src/facet/input.gleam",
+                      755
+                    );
+                    if ($) {
+                      return unwrap(track_height, px(20));
+                    } else {
+                      return unwrap(track_width, fill());
+                    }
+                  })()
+                ),
+                height2(
+                  (() => {
+                    if (vertical) {
+                      return unwrap(track_width, fill());
+                    } else {
+                      return unwrap(track_height, px(20));
+                    }
+                  })()
+                )
+              ])
+            ])
+          ),
+          new Unkeyed(toList([]))
+        ),
+        el(
+          flatten(
+            toList([
+              toList([
+                width2(unwrap(track_width, fill())),
+                height2(unwrap(track_height, px(20)))
+              ]),
+              attributes,
+              toList([behind_content(thumb$1)])
+            ])
+          ),
+          none4
+        )
+      ])
+    )
+  );
+}
+function tab_index(index4) {
+  return new Attr(tabindex(index4));
+}
+function radio_helper(orientation, attrs, on_change2, options, selected, label) {
+  let render_option = (radio_option) => {
+    let val;
+    let view3;
+    val = radio_option.value;
+    view3 = radio_option.view;
+    let _block2;
+    if (selected instanceof Some) {
+      let sel = selected[0];
+      if (isEqual(sel, val)) {
+        _block2 = new Selected();
+      } else {
+        _block2 = new Idle();
+      }
+    } else {
+      _block2 = new Idle();
+    }
+    let status = _block2;
+    return el(
+      toList([
+        pointer(),
+        (() => {
+          if (orientation instanceof Row) {
+            return width2(shrink());
+          } else {
+            return width2(fill());
+          }
+        })(),
+        on_click2(on_change2(val)),
+        new Attr(
+          aria_checked(
+            (() => {
+              if (status instanceof Selected) {
+                return "true";
+              } else {
+                return "false";
+              }
+            })()
+          )
+        ),
+        new Attr(role("radio"))
+      ]),
+      view3(status)
+    );
+  };
+  let _block;
+  if (orientation instanceof Row) {
+    _block = row(
+      prepend(hidden_label_attribute(label), attrs),
+      map2(options, render_option)
+    );
+  } else {
+    _block = column(
+      prepend(hidden_label_attribute(label), attrs),
+      map2(options, render_option)
+    );
+  }
+  let option_area = _block;
+  return apply_label(
+    toList([
+      align_left(),
+      tab_index(0),
+      html_class("focus"),
+      announce(),
+      new Attr(role("radiogroup"))
+    ]),
+    label,
+    option_area
+  );
+}
+function radio(attrs, on_change2, options, selected, label) {
+  return radio_helper(new Column(), attrs, on_change2, options, selected, label);
+}
+function on_key_lookup(msg, decoder) {
+  return on2(
+    "keyup",
+    then$(
+      key(),
+      (key2) => {
+        let $ = decoder(key2);
+        if ($ instanceof Some) {
+          let msg$1 = $[0];
+          return success(msg$1);
+        } else {
+          return failure(msg, "Key not handled");
+        }
+      }
+    )
+  );
+}
+function default_text_padding() {
+  return padding_xy(12, 12);
+}
+function default_text_box_style() {
+  return toList([
+    default_text_padding(),
+    rounded(3),
+    color2(
+      new Rgba(64 / 255, 64 / 255, 64 / 255, 1)
+    ),
+    color(white()),
+    width3(1),
+    spacing2(5),
+    width2(fill()),
+    height2(shrink())
+  ]);
+}
+function get_height2(attr) {
+  if (attr instanceof Height) {
+    let h = attr[0];
+    return new Ok(h);
+  } else {
+    return new Error(void 0);
+  }
+}
+function is_constrained(loop$len) {
+  while (true) {
+    let len = loop$len;
+    if (len instanceof Px) {
+      return true;
+    } else if (len instanceof Content2) {
+      return false;
+    } else if (len instanceof Fill) {
+      return true;
+    } else if (len instanceof Pct) {
+      return true;
+    } else if (len instanceof ScreenPct) {
+      return true;
+    } else if (len instanceof Min) {
+      let l = len[1];
+      loop$len = l;
+    } else {
+      return true;
+    }
+  }
+}
+function render_placeholder(p2, for_placeholder, on3) {
+  let placeholder_attrs;
+  let placeholder_el;
+  placeholder_attrs = p2.attrs;
+  placeholder_el = p2.content;
+  return el(
+    flatten(
+      toList([
+        for_placeholder,
+        toList([
+          color3(rgb(0.21, 0.21, 0.21)),
+          html_class(
+            classes_no_text_selection + " " + classes_pass_pointer_events
+          ),
+          clip(),
+          width3(0),
+          color2(rgba(0, 0, 0, 0)),
+          color(rgba(0, 0, 0, 0)),
+          height2(fill()),
+          width2(fill()),
+          alpha(
+            (() => {
+              if (on3) {
+                return 1;
+              } else {
+                return 0;
+              }
+            })()
+          )
+        ]),
+        placeholder_attrs
+      ])
+    ),
+    placeholder_el
+  );
+}
+function calc_move_to_compensate_for_padding(attrs) {
+  let gather_spacing = (found, attr) => {
+    if (attr instanceof StyleClass) {
+      let $2 = attr.style;
+      if ($2 instanceof SpacingStyle) {
+        let y = $2[2];
+        if (found instanceof Some) {
+          return found;
+        } else {
+          return new Some(y);
+        }
+      } else {
+        return found;
+      }
+    } else {
+      return found;
+    }
+  };
+  let $ = fold_right(attrs, new None(), gather_spacing);
+  if ($ instanceof Some) {
+    let v_space = $[0];
+    return move_up(floor(identity(v_space) / 2));
+  } else {
+    return new NoAttribute();
+  }
+}
+function negate_box(box) {
+  return new Box(-box.bottom, -box.left, -box.right, -box.top);
+}
+function render_box(box) {
+  return to_string(box.top) + "px " + to_string(box.right) + "px " + to_string(
+    box.bottom
+  ) + "px " + to_string(box.left) + "px";
+}
+function text_helper(text_input, attrs, on_change2, text_val, placeholder2, label_val) {
+  let with_defaults = append(default_text_box_style(), attrs);
+  let redistributed = redistribute(
+    isEqual(text_input.type_, new TextArea()),
+    is_stacked(label_val),
+    with_defaults
+  );
+  let get_padding = (attr) => {
+    if (attr instanceof StyleClass) {
+      let $2 = attr.style;
+      if ($2 instanceof PaddingStyle) {
+        let cls = attr.invalidation_key;
+        let pad = $2[0];
+        let t = $2[1];
+        let r = $2[2];
+        let b = $2[3];
+        let l = $2[4];
+        return new Ok(
+          new Box(
+            max(0, round(floor(b - 3))),
+            max(0, round(floor(l - 3))),
+            max(0, round(floor(r - 3))),
+            max(0, round(floor(t - 3)))
+          )
+        );
+      } else {
+        return new Error(void 0);
+      }
+    } else {
+      return new Error(void 0);
+    }
+  };
+  let _block;
+  let $ = text_input.type_;
+  if ($ instanceof TextInputNode) {
+    _block = false;
+  } else {
+    let _pipe2 = with_defaults;
+    let _pipe$12 = filter_map(_pipe2, get_height2);
+    let _pipe$22 = reverse3(_pipe$12);
+    let _pipe$32 = first(_pipe$22);
+    let _pipe$4 = map4(_pipe$32, is_constrained);
+    _block = unwrap2(_pipe$4, false);
+  }
+  let height_constrained = _block;
+  let _block$1;
+  let _pipe = with_defaults;
+  let _pipe$1 = filter_map(_pipe, get_padding);
+  let _pipe$2 = reverse3(_pipe$1);
+  let _pipe$3 = first(_pipe$2);
+  _block$1 = unwrap2(_pipe$3, new Box(0, 0, 0, 0));
+  let parent_padding = _block$1;
+  let input_element = element4(
+    new AsEl(),
+    (() => {
+      let $12 = text_input.type_;
+      if ($12 instanceof TextInputNode) {
+        let input_type = $12[0];
+        return new NodeName("input");
+      } else {
+        return new NodeName("textarea");
+      }
+    })(),
+    flatten(
+      toList([
+        (() => {
+          let $12 = text_input.type_;
+          if ($12 instanceof TextInputNode) {
+            let input_type = $12[0];
+            return toList([
+              new Attr(type_(input_type)),
+              html_class(classes_input_text)
+            ]);
+          } else {
+            return toList([
+              clip(),
+              height2(fill()),
+              html_class(classes_input_multiline),
+              calc_move_to_compensate_for_padding(with_defaults),
+              padding_each(
+                parent_padding.top,
+                parent_padding.right,
+                parent_padding.bottom,
+                parent_padding.left
+              ),
+              new Attr(
+                style(
+                  "margin",
+                  render_box(negate_box(parent_padding))
+                )
+              ),
+              new Attr(style("box-sizing", "content-box"))
+            ]);
+          }
+        })(),
+        toList([
+          new Attr(value(text_val)),
+          new Attr(on_input(on_change2)),
+          hidden_label_attribute(label_val),
+          new Attr(spellcheck(text_input.spellchecked)),
+          (() => {
+            let $12 = text_input.autofill;
+            if ($12 instanceof Some) {
+              let value2 = $12[0];
+              return new Attr(autocomplete(value2));
+            } else {
+              return new NoAttribute();
+            }
+          })()
+        ]),
+        redistributed.input
+      ])
+    ),
+    new Unkeyed(toList([]))
+  );
+  let _block$2;
+  let $1 = text_input.type_;
+  if ($1 instanceof TextInputNode) {
+    _block$2 = element4(
+      new AsEl(),
+      div2,
+      prepend(
+        width2(fill()),
+        prepend(
+          (() => {
+            let $2 = any(with_defaults, has_focus_style);
+            if ($2) {
+              return new NoAttribute();
+            } else {
+              return html_class(classes_focused_within);
+            }
+          })(),
+          flatten(
+            toList([
+              redistributed.parent,
+              (() => {
+                if (placeholder2 instanceof Some) {
+                  let place = placeholder2[0];
+                  return toList([
+                    behind_content(
+                      render_placeholder(
+                        place,
+                        redistributed.cover,
+                        text_val === ""
+                      )
+                    )
+                  ]);
+                } else {
+                  return toList([]);
+                }
+              })()
+            ])
+          )
+        )
+      ),
+      new Unkeyed(toList([input_element]))
+    );
+  } else {
+    _block$2 = element4(
+      new AsEl(),
+      div2,
+      (() => {
+        let _pipe$4 = prepend(
+          width2(fill()),
+          prepend(
+            (() => {
+              let $2 = any(with_defaults, has_focus_style);
+              if ($2) {
+                return new NoAttribute();
+              } else {
+                return html_class(classes_focused_within);
+              }
+            })(),
+            prepend(
+              html_class(classes_input_multiline_wrapper),
+              redistributed.parent
+            )
+          )
+        );
+        return ((a) => {
+          if (height_constrained) {
+            return prepend(scrollbar_y(), a);
+          } else {
+            return a;
+          }
+        })(_pipe$4);
+      })(),
+      new Unkeyed(
+        toList([
+          element4(
+            new AsParagraph(),
+            div2,
+            prepend(
+              width2(fill()),
+              prepend(
+                height2(fill()),
+                prepend(
+                  in_front(input_element),
+                  prepend(
+                    html_class(classes_input_multiline_parent),
+                    redistributed.wrapper
+                  )
+                )
+              )
+            ),
+            new Unkeyed(
+              (() => {
+                let $2 = text_val === "";
+                if ($2) {
+                  if (placeholder2 instanceof Some) {
+                    let place = placeholder2[0];
+                    return toList([render_placeholder(place, toList([]), true)]);
+                  } else {
+                    return toList([text4("\xA0")]);
+                  }
+                } else {
+                  return toList([
+                    unstyled(
+                      span(
+                        toList([
+                          class$(
+                            classes_input_multiline_filler
+                          )
+                        ]),
+                        toList([text3(text_val + "\xA0")])
+                      )
+                    )
+                  ]);
+                }
+              })()
+            )
+          )
+        ])
+      )
+    );
+  }
+  let wrapped_input = _block$2;
+  return apply_label(
+    prepend(
+      new Class2(cursor(), classes_cursor_text),
+      prepend(
+        (() => {
+          let $2 = is_hidden_label(label_val);
+          if ($2) {
+            return new NoAttribute();
+          } else {
+            return spacing2(5);
+          }
+        })(),
+        prepend(announce(), redistributed.full_parent)
+      )
+    ),
+    label_val,
+    wrapped_input
+  );
+}
+function username(attrs, on_change2, text5, placeholder2, label) {
+  return text_helper(
+    new TextInput(new TextInputNode("text"), false, new Some("username")),
+    attrs,
+    on_change2,
+    text5,
+    placeholder2,
+    label
+  );
+}
+function current_password(attrs, on_change2, text_val, placeholder_val, label_val, show) {
+  return text_helper(
+    new TextInput(
+      new TextInputNode(
+        (() => {
+          if (show) {
+            return "text";
+          } else {
+            return "password";
+          }
+        })()
+      ),
+      false,
+      new Some("current-password")
+    ),
+    attrs,
+    on_change2,
+    text_val,
+    placeholder_val,
+    label_val
+  );
+}
+function multiline(attrs, on_change2, text_val, placeholder_val, label_val, spellcheck_val) {
+  return text_helper(
+    new TextInput(new TextArea(), spellcheck_val, new None()),
+    attrs,
+    on_change2,
+    text_val,
+    placeholder_val,
+    label_val
+  );
+}
+function button(attrs, on_press, label) {
+  return element4(
+    new AsEl(),
+    div2,
+    prepend(
+      width2(shrink()),
+      prepend(
+        height2(shrink()),
+        prepend(
+          html_class(
+            classes_content_center_x + " " + classes_content_center_y + " " + classes_se_button + " " + classes_no_text_selection
+          ),
+          prepend(
+            pointer(),
+            prepend(
+              focus_default(attrs),
+              prepend(
+                new Describe(new Button()),
+                prepend(
+                  new Attr(tabindex(0)),
+                  (() => {
+                    if (on_press instanceof Some) {
+                      let msg = on_press[0];
+                      return prepend(
+                        on_click2(msg),
+                        prepend(
+                          on_key_lookup(
+                            msg,
+                            (code) => {
+                              let c = code;
+                              if (c === "Enter") {
+                                return new Some(msg);
+                              } else {
+                                let c$1 = code;
+                                if (c$1 === " ") {
+                                  return new Some(msg);
+                                } else {
+                                  return new None();
+                                }
+                              }
+                            }
+                          ),
+                          attrs
+                        )
+                      );
+                    } else {
+                      return prepend(
+                        new Attr(disabled(true)),
+                        attrs
+                      );
+                    }
+                  })()
+                )
+              )
+            )
+          )
+        )
+      )
+    ),
+    new Unkeyed(toList([label]))
+  );
+}
+function checkbox(attrs, on_change2, icon, checked, label) {
+  let attributes = prepend(
+    (() => {
+      let $ = is_hidden_label(label);
+      if ($) {
+        return new NoAttribute();
+      } else {
+        return spacing2(6);
+      }
+    })(),
+    prepend(
+      on_click2(on_change2(!checked)),
+      prepend(
+        announce(),
+        prepend(
+          on_key_lookup(
+            on_change2(true),
+            (code) => {
+              let c = code;
+              if (c === "Enter") {
+                return new Some(on_change2(!checked));
+              } else {
+                let c$1 = code;
+                if (c$1 === " ") {
+                  return new Some(on_change2(!checked));
+                } else {
+                  return new None();
+                }
+              }
+            }
+          ),
+          prepend(
+            tab_index(0),
+            prepend(
+              pointer(),
+              prepend(
+                align_left(),
+                prepend(width2(fill()), attrs)
+              )
+            )
+          )
+        )
+      )
+    )
+  );
+  return apply_label(
+    prepend(
+      new Attr(role("checkbox")),
+      prepend(
+        new Attr(
+          aria_checked(
+            (() => {
+              if (checked) {
+                return "true";
+              } else {
+                return "false";
+              }
+            })()
+          )
+        ),
+        prepend(hidden_label_attribute(label), attributes)
+      )
+    ),
+    label,
+    element4(
+      new AsEl(),
+      div2,
+      toList([center_y2(), height2(fill()), width2(shrink())]),
+      new Unkeyed(toList([icon(checked)]))
+    )
+  );
 }
 function echo(value2, message, file, line) {
   const grey = "\x1B[90m";
@@ -10390,11 +13347,11 @@ var Echo$Inspector = class {
     const head = name === "Object" ? "" : name + " ";
     return `//js(${head}{${body}})`;
   }
-  #dict(map8) {
+  #dict(map9) {
     let body = "dict.from_list([";
     let first3 = true;
     let key_value_pairs = [];
-    map8.forEach((value2, key2) => {
+    map9.forEach((value2, key2) => {
       key_value_pairs.push([key2, value2]);
     });
     key_value_pairs.sort();
@@ -10498,381 +13455,753 @@ var Echo$Inspector = class {
   }
 };
 
-// build/dev/javascript/facet/facet/element.mjs
-function rgb(red, green, blue) {
-  return new Rgba(red, green, blue, 1);
+// build/dev/javascript/facet/example/form.mjs
+var Form = class extends CustomType {
+  constructor(username2, password, agree_tos, comment, lunch, spiciness) {
+    super();
+    this.username = username2;
+    this.password = password;
+    this.agree_tos = agree_tos;
+    this.comment = comment;
+    this.lunch = lunch;
+    this.spiciness = spiciness;
+  }
+};
+var Burrito = class extends CustomType {
+};
+var Taco = class extends CustomType {
+};
+var Gyro = class extends CustomType {
+};
+var Update2 = class extends CustomType {
+  constructor($0) {
+    super();
+    this[0] = $0;
+  }
+};
+function init() {
+  return new Form("", "", false, "", new Burrito(), 0);
 }
-function oklch(a, b, c) {
-  return new Oklch(a, b, c);
+function update2(msg, _) {
+  let new$8 = msg[0];
+  return new$8;
 }
-function shrink() {
-  return new Content2();
-}
-function fill() {
-  return new Fill(1);
-}
-function layout_with(options, attributes, child) {
-  return render_root(
-    options,
-    flatten(
-      toList([
+function view(form) {
+  let _pipe = toList([
+    width2(maximum(fill(), 800)),
+    center_x2(),
+    center_y2(),
+    spacing2(36),
+    padding2(36),
+    size3(16)
+  ]);
+  return column(
+    _pipe,
+    toList([
+      el(
+        toList([heading(1), align_left(), size3(36)]),
+        text4("Welcome to the Stylish Elephants Lunch Emporium")
+      ),
+      radio(
+        toList([spacing2(12), color(gray_200())]),
+        (new$8) => {
+          return new Update2(
+            new Form(
+              form.username,
+              form.password,
+              form.agree_tos,
+              form.comment,
+              new$8,
+              form.spiciness
+            )
+          );
+        },
         toList([
-          html_class(
-            join(
+          option(new Gyro(), text4("Gyro")),
+          option(new Burrito(), text4("Burrito")),
+          option(new Taco(), text4("Taco"))
+        ]),
+        new Some(form.lunch),
+        label_above(
+          toList([size3(14), padding_xy(0, 12)]),
+          text4("What would you like for lunch?")
+        )
+      ),
+      username(
+        toList([
+          spacing2(12),
+          below(
+            el(
               toList([
-                classes_root,
-                classes_any,
-                classes_single
+                color3(red_500()),
+                size3(14),
+                align_right2(),
+                move_down(6)
               ]),
-              " "
+              text4("This one is wrong")
             )
           )
         ]),
-        root_style(),
-        attributes
-      ])
-    ),
-    child
-  );
-}
-function layout(attributes, child) {
-  return layout_with(toList([]), attributes, child);
-}
-function text4(content) {
-  return new Text2(content);
-}
-function el(attributes, child) {
-  return element4(
-    new AsEl(),
-    div2,
-    attributes,
-    new Unkeyed(toList([child]))
-  );
-}
-function width2(length3) {
-  return new Width(length3);
-}
-function height2(length3) {
-  return new Height(length3);
-}
-function row(attributes, children) {
-  return element4(
-    new AsRow(),
-    div2,
-    append(
-      toList([
-        html_class(
-          classes_content_left + " " + classes_content_center_x
+        (new$8) => {
+          return new Update2(
+            new Form(
+              new$8,
+              form.password,
+              form.agree_tos,
+              form.comment,
+              form.lunch,
+              form.spiciness
+            )
+          );
+        },
+        form.username,
+        new Some(placeholder(toList([]), text4("username"))),
+        label_above(toList([size3(14)]), text4("Username"))
+      ),
+      current_password(
+        toList([spacing2(12)]),
+        (new$8) => {
+          return new Update2(
+            new Form(
+              form.username,
+              new$8,
+              form.agree_tos,
+              form.comment,
+              form.lunch,
+              form.spiciness
+            )
+          );
+        },
+        form.password,
+        new None(),
+        label_above(toList([size3(14)]), text4("Password")),
+        false
+      ),
+      multiline(
+        toList([height2(shrink()), spacing2(12)]),
+        (new$8) => {
+          return new Update2(
+            new Form(
+              form.username,
+              form.password,
+              form.agree_tos,
+              new$8,
+              form.lunch,
+              form.spiciness
+            )
+          );
+        },
+        form.comment,
+        new Some(
+          placeholder(
+            toList([]),
+            text4("Extra hot sauce?\n\n\nYes pls")
+          )
         ),
-        width2(shrink()),
-        height2(shrink())
-      ]),
-      attributes
-    ),
-    new Unkeyed(children)
-  );
-}
-function padding_xy(x, y) {
-  let x_float = identity(x);
-  let y_float = identity(y);
-  return new StyleClass(
-    padding(),
-    new PaddingStyle(
-      "p-" + to_string(x) + "-" + to_string(y),
-      y_float,
-      x_float,
-      y_float,
-      x_float
-    )
-  );
-}
-function center_x2() {
-  return new AlignX(new CenterX2());
-}
-function center_y2() {
-  return new AlignY(new CenterY2());
-}
-function spacing2(pixels) {
-  return new StyleClass(
-    spacing(),
-    new SpacingStyle(spacing_name(pixels, pixels), pixels, pixels)
-  );
-}
-function pointer() {
-  return new Class2(cursor(), classes_cursor_pointer);
-}
-function color_gray_100() {
-  return oklch(0.967, 3e-3, 264.542);
-}
-function color_white() {
-  return rgb(1, 1, 1);
-}
-
-// build/dev/javascript/facet/facet/element/background.mjs
-function color(clr) {
-  return new StyleClass(
-    bg_color(),
-    new Colored(
-      "bg-" + format_color_class(clr),
-      "background-color",
-      clr
-    )
-  );
-}
-
-// build/dev/javascript/facet/facet/element/border.mjs
-function width3(v) {
-  return new StyleClass(
-    border_width(),
-    new BorderWidth("b-" + to_string(v), v, v, v, v)
-  );
-}
-function solid() {
-  return new Class2(border_style(), classes_border_solid);
-}
-function rounded(radius) {
-  return new StyleClass(
-    border_round(),
-    new Single(
-      "br-" + to_string(radius),
-      "border-radius",
-      to_string(radius) + "px"
-    )
-  );
-}
-
-// build/dev/javascript/facet/facet/element/font.mjs
-function family(families) {
-  return new StyleClass(
-    font_family(),
-    new FontFamily(
-      fold(families, "ff-", render_font_class_name),
-      families
-    )
-  );
-}
-function sans_serif() {
-  return new SansSerif();
-}
-
-// build/dev/javascript/lustre/lustre/event.mjs
-function is_immediate_event(name) {
-  if (name === "input") {
-    return true;
-  } else if (name === "change") {
-    return true;
-  } else if (name === "focus") {
-    return true;
-  } else if (name === "focusin") {
-    return true;
-  } else if (name === "focusout") {
-    return true;
-  } else if (name === "blur") {
-    return true;
-  } else if (name === "select") {
-    return true;
-  } else {
-    return false;
-  }
-}
-function on(name, handler) {
-  return event(
-    name,
-    map3(handler, (msg) => {
-      return new Handler(false, false, msg);
-    }),
-    empty_list,
-    never,
-    never,
-    is_immediate_event(name),
-    0,
-    0
-  );
-}
-function on_click(msg) {
-  return on("click", success(msg));
-}
-
-// build/dev/javascript/facet/facet/element/events.mjs
-function on_click2(msg) {
-  return new Attr(on_click(msg));
-}
-function on2(event_name, decoder) {
-  return new Attr(on(event_name, decoder));
-}
-function key() {
-  return at(toList(["key"]), string2);
-}
-
-// build/dev/javascript/facet/facet/element/input.mjs
-function has_focus_style(attr) {
-  if (attr instanceof StyleClass) {
-    let $ = attr.style;
-    if ($ instanceof PseudoSelector) {
-      let $1 = $[0];
-      if ($1 instanceof Focus) {
-        return true;
-      } else {
-        return false;
-      }
-    } else {
-      return false;
-    }
-  } else {
-    return false;
-  }
-}
-function focus_default(attrs) {
-  let $ = any(attrs, has_focus_style);
-  if ($) {
-    return new NoAttribute();
-  } else {
-    return html_class("focusable");
-  }
-}
-function on_key_lookup(msg, decoder) {
-  return on2(
-    "keyup",
-    then$(
-      key(),
-      (key2) => {
-        let $ = decoder(key2);
-        if ($ instanceof Some) {
-          let msg$1 = $[0];
-          return success(msg$1);
-        } else {
-          return failure(msg, "Key not handled");
-        }
-      }
-    )
-  );
-}
-function button(attrs, on_press, label) {
-  return element4(
-    as_el(),
-    div2,
-    prepend(
-      width2(shrink()),
-      prepend(
-        height2(shrink()),
-        prepend(
-          html_class(
-            classes_content_center_x + " " + classes_content_center_y + " " + classes_se_button + " " + classes_no_text_selection
-          ),
-          prepend(
-            pointer(),
-            prepend(
-              focus_default(attrs),
-              prepend(
-                new Describe(new Button()),
-                prepend(
-                  new Attr(tabindex(0)),
-                  (() => {
-                    if (on_press instanceof Some) {
-                      let msg = on_press[0];
-                      return prepend(
-                        on_click2(msg),
-                        prepend(
-                          on_key_lookup(
-                            msg,
-                            (code) => {
-                              let c = code;
-                              if (c === "Enter") {
-                                return new Some(msg);
-                              } else {
-                                let c$1 = code;
-                                if (c$1 === " ") {
-                                  return new Some(msg);
-                                } else {
-                                  return new None();
-                                }
-                              }
-                            }
-                          ),
-                          attrs
-                        )
-                      );
-                    } else {
-                      return prepend(
-                        new Attr(disabled(true)),
-                        attrs
-                      );
-                    }
-                  })()
-                )
-              )
+        label_above(
+          toList([size3(14)]),
+          text4("Leave a comment!")
+        ),
+        false
+      ),
+      checkbox(
+        toList([]),
+        (new$8) => {
+          return new Update2(
+            new Form(
+              form.username,
+              form.password,
+              new$8,
+              form.comment,
+              form.lunch,
+              form.spiciness
+            )
+          );
+        },
+        default_checkbox,
+        form.agree_tos,
+        label_right(toList([]), text4("Agree to Terms of Service"))
+      ),
+      slider(
+        toList([
+          height2(px(30)),
+          behind_content(
+            el(
+              toList([
+                width2(fill()),
+                height2(px(2)),
+                center_y2(),
+                color(gray_300()),
+                rounded(2)
+              ]),
+              none4
             )
           )
-        )
+        ]),
+        (new$8) => {
+          return new Update2(
+            new Form(
+              form.username,
+              form.password,
+              form.agree_tos,
+              form.comment,
+              form.lunch,
+              new$8
+            )
+          );
+        },
+        label_above(
+          toList([]),
+          text4("Spiciness: " + float_to_string(form.spiciness))
+        ),
+        0,
+        3.2,
+        form.spiciness,
+        default_thumb(),
+        new None()
+      ),
+      slider(
+        toList([
+          width2(px(40)),
+          height2(px(200)),
+          behind_content(
+            el(
+              toList([
+                height2(fill()),
+                width2(px(2)),
+                center_x2(),
+                color(gray_300()),
+                rounded(2)
+              ]),
+              none4
+            )
+          )
+        ]),
+        (new$8) => {
+          return new Update2(
+            new Form(
+              form.username,
+              form.password,
+              form.agree_tos,
+              form.comment,
+              form.lunch,
+              new$8
+            )
+          );
+        },
+        label_above(
+          toList([]),
+          text4("Spiciness: " + float_to_string(form.spiciness))
+        ),
+        0,
+        3.2,
+        form.spiciness,
+        default_thumb(),
+        new None()
       )
-    ),
-    new Unkeyed(toList([label]))
+    ])
   );
 }
 
 // build/dev/javascript/facet/facet.mjs
 var FILEPATH = "src/facet.gleam";
+var Model = class extends CustomType {
+  constructor(count, form) {
+    super();
+    this.count = count;
+    this.form = form;
+  }
+};
 var Incr = class extends CustomType {
 };
 var Decr = class extends CustomType {
 };
-function init(_) {
-  return 0;
-}
-function update2(model, msg) {
-  if (msg instanceof Incr) {
-    return model + 1;
-  } else {
-    return model - 1;
+var FormUpdated = class extends CustomType {
+  constructor($0) {
+    super();
+    this[0] = $0;
   }
+};
+function init2(_) {
+  return new Model(0, init());
 }
-function view(model) {
-  let count = to_string(model);
+function update3(model, msg) {
+  let _block;
+  if (msg instanceof Incr) {
+    _block = new Model(model.count + 1, model.form);
+  } else if (msg instanceof Decr) {
+    _block = new Model(model.count - 1, model.form);
+  } else {
+    let form_msg = msg[0];
+    _block = new Model(model.count, update2(form_msg, model.form));
+  }
+  let _pipe = _block;
+  return echo2(_pipe, void 0, "src/facet.gleam", 59);
+}
+function view_header() {
   return row(
     toList([
-      height2(fill()),
-      width2(fill()),
-      center_x2(),
-      center_y2(),
-      spacing2(10)
+      align_left(),
+      medium(),
+      size3(18),
+      space_evenly(),
+      padding_xy(20, 25),
+      width2(
+        (() => {
+          let _pipe = fill();
+          return maximum(_pipe, 1300);
+        })()
+      ),
+      center_x2()
     ]),
     toList([
-      button(
-        toList([padding_xy(10, 4), width3(1)]),
-        new Some(new Decr()),
-        text4("-")
+      row(
+        toList([spacing2(20)]),
+        toList([
+          link(toList([]), "", text4("Shop")),
+          link(toList([]), "", text4("Search"))
+        ])
+      ),
+      row(
+        toList([spacing2(20)]),
+        toList([link(toList([semi_bold()]), "", text4("Sign In"))])
+      )
+    ])
+  );
+}
+function new_badge_oval() {
+  return el(
+    toList([
+      color(sky_200()),
+      padding_xy(15, 10),
+      rounded_pct(50),
+      size3(10)
+    ]),
+    text4("NEW")
+  );
+}
+function title_and_description() {
+  return column(
+    toList([spacing2(4)]),
+    toList([
+      el(
+        toList([align_left(), medium(), size3(24)]),
+        text4("Memopad")
       ),
       el(
         toList([
-          solid(),
-          width3(1),
-          padding_xy(10, 4),
-          rounded(4),
-          color(color_white())
+          align_left(),
+          medium(),
+          color3(gray_500()),
+          size3(24)
         ]),
-        text4(count)
-      ),
-      button(
-        toList([padding_xy(10, 4), width3(1)]),
-        new Some(new Incr()),
-        text4("+")
+        text4("Our kind of waste.")
       )
+    ])
+  );
+}
+function product_dimensions() {
+  return column(
+    toList([
+      spacing2(4),
+      width2(fill()),
+      padding_each(0, 0, 15, 0)
+    ]),
+    toList([
+      el(
+        toList([
+          align_left(),
+          medium(),
+          color3(gray_500()),
+          size3(14)
+        ]),
+        text4("Size:")
+      ),
+      el(
+        toList([align_left(), semi_bold(), size3(14)]),
+        text4("7.5 x 7.5 cm")
+      )
+    ])
+  );
+}
+function divider(border_style2, color4) {
+  return el(
+    toList([
+      color2(color4),
+      border_style2,
+      width2(fill()),
+      width_each(1, 0, 0, 0)
+    ]),
+    none4
+  );
+}
+function card(children) {
+  return column(
+    toList([
+      color(gray_100()),
+      color2(border()),
+      width3(1),
+      padding2(14),
+      rounded(8),
+      width2(fill())
+    ]),
+    children
+  );
+}
+function card_text(label) {
+  return el(
+    toList([medium(), size3(14), letter_spacing2(0.2)]),
+    text4(label)
+  );
+}
+function product_details_card() {
+  return card(
+    toList([
+      card_text("Product details."),
+      vspace(40),
+      card_text("Post-industrial waste."),
+      vspace(16),
+      card_text("Multiple sizes."),
+      vspace(16),
+      card_text("Each one is unique.")
+    ])
+  );
+}
+function sustainability_card() {
+  return card(
+    toList([
+      card_text("Sustainability."),
+      vspace(40),
+      card_text("From mishmash notebooks."),
+      vspace(16),
+      card_text("Responsible design production."),
+      vspace(16),
+      card_text("Handmade in Portugal.")
+    ])
+  );
+}
+function button2(msg, label, enabled) {
+  return button(
+    prepend(
+      padding_xy(16, 8),
+      prepend(
+        hovered(
+          (() => {
+            if (enabled) {
+              return toList([color(gray_200())]);
+            } else {
+              return toList([]);
+            }
+          })()
+        ),
+        prepend(
+          transition2(toList(["background"]), 200),
+          prepend(
+            rounded(5),
+            (() => {
+              if (enabled) {
+                return toList([]);
+              } else {
+                return toList([cursor2()]);
+              }
+            })()
+          )
+        )
+      )
+    ),
+    (() => {
+      if (enabled) {
+        return new Some(msg);
+      } else {
+        return new None();
+      }
+    })(),
+    el(
+      toList([
+        center_x2(),
+        center_y2(),
+        (() => {
+          let $ = contains(toList(["+", "-"]), label);
+          if ($) {
+            return move_up(1);
+          } else {
+            return attr_none();
+          }
+        })()
+      ]),
+      text4(label)
+    )
+  );
+}
+function primary_button(msg, label) {
+  return button(
+    toList([
+      padding_xy(16, 8),
+      hovered(toList([color(gray_800())])),
+      color(gray_900()),
+      color3(white()),
+      rounded(8),
+      size3(14),
+      letter_spacing2(0.3)
+    ]),
+    new Some(msg),
+    el(toList([center_x2(), center_y2()]), text4(label))
+  );
+}
+function cart_buttons(count) {
+  return row(
+    toList([padding_xy(0, 15), space_evenly(), width2(fill())]),
+    toList([
+      row(
+        toList([
+          color2(border()),
+          width3(1),
+          rounded(8),
+          size3(16),
+          padding2(3),
+          spacing2(16)
+        ]),
+        toList([
+          button2(new Decr(), "-", count !== 0),
+          el(
+            toList([
+              center_x2(),
+              center_y2(),
+              variant(tabular_numbers())
+            ]),
+            text4(to_string(count))
+          ),
+          button2(new Incr(), "+", true)
+        ])
+      ),
+      primary_button(new Incr(), "Add to cart")
+    ])
+  );
+}
+function view_product_info(count) {
+  return el(
+    toList([rounded(12), width2(fill_portion(2))]),
+    column(
+      toList([align_left(), width2(fill())]),
+      toList([
+        new_badge_oval(),
+        vspace(30),
+        title_and_description(),
+        vspace(30),
+        product_dimensions(),
+        divider(solid(), border()),
+        vspace(20),
+        cart_buttons(count),
+        vspace(20),
+        product_details_card(),
+        vspace(16),
+        sustainability_card()
+      ])
+    )
+  );
+}
+function view_product(count) {
+  return row(
+    toList([
+      align_left(),
+      medium(),
+      size3(18),
+      spacing2(30),
+      padding_xy(20, 0),
+      width2(
+        (() => {
+          let _pipe = fill();
+          return maximum(_pipe, 1300);
+        })()
+      ),
+      center_x2()
+    ]),
+    toList([
+      el(
+        toList([
+          rounded(12),
+          height2(fill()),
+          width2(fill_portion(3)),
+          gradient(
+            new ToAngle(7.2 * pi2() / 8),
+            toList([
+              percent(0, vibrant_yellow()),
+              percent(60, vibrant_yellow()),
+              percent(60, peach())
+            ])
+          )
+        ]),
+        none4
+      ),
+      el(
+        toList([
+          rounded(12),
+          height2(fill()),
+          width2(fill_portion(3)),
+          color(gray_300())
+        ]),
+        none4
+      ),
+      view_product_info(count)
+    ])
+  );
+}
+function view_about() {
+  let circle = el(
+    toList([padding_each(0, 4, 0, 0)]),
+    el(
+      toList([
+        color(sky_200()),
+        width2(px(36)),
+        height2(px(36)),
+        rounded_pct(50),
+        move_down(5)
+      ]),
+      none4
+    )
+  );
+  return column(
+    toList([
+      padding_xy(20, 0),
+      width2(
+        (() => {
+          let _pipe = fill();
+          return maximum(_pipe, 1300);
+        })()
+      ),
+      center_x2()
+    ]),
+    toList([
+      paragraph(
+        toList([size3(38), medium(), spacing2(16)]),
+        toList([
+          text4(
+            "One man's trash is another man's treasure. An authentic mishmash of "
+          ),
+          circle,
+          el(toList([semi_bold()]), text4(" papers")),
+          text4(
+            ". From hard to soft, colorful to monochrome, the Memopads\n    are 100% made from our production paper waste."
+          )
+        ])
+      )
+    ])
+  );
+}
+function view_about_2() {
+  let ambassador_text = el(
+    toList([width2(fill()), height2(fill())]),
+    column(
+      toList([width2(maximum(fill(), 250)), height2(fill())]),
+      toList([
+        paragraph(
+          toList([size3(32), semi_bold(), spacing2(8)]),
+          toList([text4("A miscellaneous ambassador.")])
+        ),
+        vspace(24),
+        paragraph(
+          toList([size3(18), medium(), spacing2(8)]),
+          toList([
+            text4(
+              "Detachable sheets that result in an extrovert desk item. Ready for every phone call that might surprise you."
+            )
+          ])
+        ),
+        column(
+          toList([
+            size3(14),
+            color3(gray_800()),
+            spacing2(14),
+            align_bottom2(),
+            width2(fill())
+          ]),
+          toList([
+            text4("Post-industrial waste"),
+            divider(dashed(), gray_400()),
+            text4("From mishmash notebooks"),
+            divider(dashed(), gray_400()),
+            text4(" Handmade in Portugal")
+          ])
+        )
+      ])
+    )
+  );
+  return el(
+    toList([width2(fill()), color(sky_100())]),
+    row(
+      toList([
+        padding_xy(20, 28),
+        width2(
+          (() => {
+            let _pipe = fill();
+            return maximum(_pipe, 1300);
+          })()
+        ),
+        center_x2(),
+        spacing2(20)
+      ]),
+      toList([
+        ambassador_text,
+        el(
+          toList([
+            rounded(12),
+            color(vibrant_yellow()),
+            align_right2(),
+            width2(fill()),
+            height2(pct(65))
+          ]),
+          none4
+        ),
+        el(
+          toList([
+            rounded(12),
+            color(vibrant_yellow()),
+            align_right2(),
+            width2(fill()),
+            height2(px(600))
+          ]),
+          none4
+        )
+      ])
+    )
+  );
+}
+function view2(model) {
+  return column(
+    toList([height2(fill()), width2(fill())]),
+    toList([
+      (() => {
+        let _pipe = view(model.form);
+        return map8(_pipe, (var0) => {
+          return new FormUpdated(var0);
+        });
+      })(),
+      view_header(),
+      view_product(model.count),
+      vspace(100),
+      view_about(),
+      vspace(100),
+      view_about_2()
     ])
   );
 }
 function main() {
   let app = simple(
-    init,
-    update2,
+    init2,
+    update3,
     (model) => {
       return layout(
         toList([
           height2(fill()),
           width2(fill()),
-          family(toList([sans_serif()])),
-          color(color_gray_100())
+          scrollbars(),
+          family(
+            toList([typeface("Plus Jakarta Sans"), sans_serif()])
+          ),
+          color(gray_50()),
+          color3(gray_800())
         ]),
-        view(model)
+        view2(model)
       );
     }
   );
@@ -10882,14 +14211,217 @@ function main() {
       "let_assert",
       FILEPATH,
       "facet",
-      24,
+      33,
       "main",
       "Pattern match failed, no pattern matched the value.",
-      { value: $, start: 570, end: 619, pattern_start: 581, pattern_end: 586 }
+      { value: $, start: 797, end: 846, pattern_start: 808, pattern_end: 813 }
     );
   }
   return void 0;
 }
+function echo2(value2, message, file, line) {
+  const grey = "\x1B[90m";
+  const reset_color = "\x1B[39m";
+  const file_line = `${file}:${line}`;
+  const inspector = new Echo$Inspector2();
+  const string_value = inspector.inspect(value2);
+  const string_message = message === void 0 ? "" : " " + message;
+  if (globalThis.process?.stderr?.write) {
+    const string5 = `${grey}${file_line}${reset_color}${string_message}
+${string_value}
+`;
+    globalThis.process.stderr.write(string5);
+  } else if (globalThis.Deno) {
+    const string5 = `${grey}${file_line}${reset_color}${string_message}
+${string_value}
+`;
+    globalThis.Deno.stderr.writeSync(new TextEncoder().encode(string5));
+  } else {
+    const string5 = `${file_line}
+${string_value}`;
+    globalThis.console.log(string5);
+  }
+  return value2;
+}
+var Echo$Inspector2 = class {
+  #references = /* @__PURE__ */ new Set();
+  #isDict(value2) {
+    try {
+      return value2 instanceof Dict;
+    } catch {
+      return false;
+    }
+  }
+  #float(float2) {
+    const string5 = float2.toString().replace("+", "");
+    if (string5.indexOf(".") >= 0) {
+      return string5;
+    } else {
+      const index4 = string5.indexOf("e");
+      if (index4 >= 0) {
+        return string5.slice(0, index4) + ".0" + string5.slice(index4);
+      } else {
+        return string5 + ".0";
+      }
+    }
+  }
+  inspect(v) {
+    const t = typeof v;
+    if (v === true) return "True";
+    if (v === false) return "False";
+    if (v === null) return "//js(null)";
+    if (v === void 0) return "Nil";
+    if (t === "string") return this.#string(v);
+    if (t === "bigint" || Number.isInteger(v)) return v.toString();
+    if (t === "number") return this.#float(v);
+    if (v instanceof UtfCodepoint) return this.#utfCodepoint(v);
+    if (v instanceof BitArray) return this.#bit_array(v);
+    if (v instanceof RegExp) return `//js(${v})`;
+    if (v instanceof Date) return `//js(Date("${v.toISOString()}"))`;
+    if (v instanceof globalThis.Error) return `//js(${v.toString()})`;
+    if (v instanceof Function) {
+      const args = [];
+      for (const i of Array(v.length).keys())
+        args.push(String.fromCharCode(i + 97));
+      return `//fn(${args.join(", ")}) { ... }`;
+    }
+    if (this.#references.size === this.#references.add(v).size) {
+      return "//js(circular reference)";
+    }
+    let printed;
+    if (Array.isArray(v)) {
+      printed = `#(${v.map((v2) => this.inspect(v2)).join(", ")})`;
+    } else if (v instanceof List) {
+      printed = this.#list(v);
+    } else if (v instanceof CustomType) {
+      printed = this.#customType(v);
+    } else if (this.#isDict(v)) {
+      printed = this.#dict(v);
+    } else if (v instanceof Set) {
+      return `//js(Set(${[...v].map((v2) => this.inspect(v2)).join(", ")}))`;
+    } else {
+      printed = this.#object(v);
+    }
+    this.#references.delete(v);
+    return printed;
+  }
+  #object(v) {
+    const name = Object.getPrototypeOf(v)?.constructor?.name || "Object";
+    const props = [];
+    for (const k of Object.keys(v)) {
+      props.push(`${this.inspect(k)}: ${this.inspect(v[k])}`);
+    }
+    const body = props.length ? " " + props.join(", ") + " " : "";
+    const head = name === "Object" ? "" : name + " ";
+    return `//js(${head}{${body}})`;
+  }
+  #dict(map9) {
+    let body = "dict.from_list([";
+    let first3 = true;
+    let key_value_pairs = [];
+    map9.forEach((value2, key2) => {
+      key_value_pairs.push([key2, value2]);
+    });
+    key_value_pairs.sort();
+    key_value_pairs.forEach(([key2, value2]) => {
+      if (!first3) body = body + ", ";
+      body = body + "#(" + this.inspect(key2) + ", " + this.inspect(value2) + ")";
+      first3 = false;
+    });
+    return body + "])";
+  }
+  #customType(record) {
+    const props = Object.keys(record).map((label) => {
+      const value2 = this.inspect(record[label]);
+      return isNaN(parseInt(label)) ? `${label}: ${value2}` : value2;
+    }).join(", ");
+    return props ? `${record.constructor.name}(${props})` : record.constructor.name;
+  }
+  #list(list4) {
+    if (list4 instanceof Empty) {
+      return "[]";
+    }
+    let char_out = 'charlist.from_string("';
+    let list_out = "[";
+    let current = list4;
+    while (current instanceof NonEmpty) {
+      let element5 = current.head;
+      current = current.tail;
+      if (list_out !== "[") {
+        list_out += ", ";
+      }
+      list_out += this.inspect(element5);
+      if (char_out) {
+        if (Number.isInteger(element5) && element5 >= 32 && element5 <= 126) {
+          char_out += String.fromCharCode(element5);
+        } else {
+          char_out = null;
+        }
+      }
+    }
+    if (char_out) {
+      return char_out + '")';
+    } else {
+      return list_out + "]";
+    }
+  }
+  #string(str) {
+    let new_str = '"';
+    for (let i = 0; i < str.length; i++) {
+      const char = str[i];
+      switch (char) {
+        case "\n":
+          new_str += "\\n";
+          break;
+        case "\r":
+          new_str += "\\r";
+          break;
+        case "	":
+          new_str += "\\t";
+          break;
+        case "\f":
+          new_str += "\\f";
+          break;
+        case "\\":
+          new_str += "\\\\";
+          break;
+        case '"':
+          new_str += '\\"';
+          break;
+        default:
+          if (char < " " || char > "~" && char < "\xA0") {
+            new_str += "\\u{" + char.charCodeAt(0).toString(16).toUpperCase().padStart(4, "0") + "}";
+          } else {
+            new_str += char;
+          }
+      }
+    }
+    new_str += '"';
+    return new_str;
+  }
+  #utfCodepoint(codepoint2) {
+    return `//utfcodepoint(${String.fromCodePoint(codepoint2.value)})`;
+  }
+  #bit_array(bits) {
+    if (bits.bitSize === 0) {
+      return "<<>>";
+    }
+    let acc = "<<";
+    for (let i = 0; i < bits.byteSize - 1; i++) {
+      acc += bits.byteAt(i).toString();
+      acc += ", ";
+    }
+    if (bits.byteSize * 8 === bits.bitSize) {
+      acc += bits.byteAt(bits.byteSize - 1).toString();
+    } else {
+      const trailingBitsCount = bits.bitSize % 8;
+      acc += bits.byteAt(bits.byteSize - 1) >> 8 - trailingBitsCount;
+      acc += `:size(${trailingBitsCount})`;
+    }
+    acc += ">>";
+    return acc;
+  }
+};
 
 // build/.lustre/entry.mjs
 main();

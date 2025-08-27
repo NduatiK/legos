@@ -2,6 +2,7 @@ import facet/element.{type Attr, type Attribute, type Color}
 import facet/internal/flag
 import facet/internal/model as internal
 import gleam/float
+import gleam/int
 import gleam/list
 import gleam/string
 import lustre/attribute as attr
@@ -58,12 +59,13 @@ pub type Direction {
   ToLeft
   ToTopLeft
   ToBottomLeft
-  ToAngle(Float)
+  ToRad(Float)
+  ToDegrees(Int)
 }
 
 pub type Step {
   ColorStep(Color)
-  PercentStep(Float, Color)
+  PercentStep(Int, Color)
   PxStep(Int, Color)
 }
 
@@ -73,7 +75,7 @@ pub fn step(color: Color) -> Step {
 }
 
 /// Create a percentage-based color step for gradients
-pub fn percent(pct: Float, color: Color) -> Step {
+pub fn percent(pct: Int, color: Color) -> Step {
   PercentStep(pct, color)
 }
 
@@ -86,27 +88,65 @@ pub fn px(pixels: Int, color: Color) -> Step {
 /// First you need to specify what direction the gradient is going by providing an angle in radians.
 /// `0.0` is up and `pi` is down.
 /// The colors will be evenly spaced.
-pub fn gradient(angle: Float, steps: List(Color)) -> Attr(decorative, msg) {
+pub fn gradient(
+  direction: Direction,
+  steps: List(Step),
+) -> Attr(decorative, msg) {
+  let to_bg_color = fn(clr) {
+    internal.StyleClass(
+      flag.bg_color(),
+      internal.Colored(
+        "bg-" <> internal.format_color_class(clr),
+        "background-color",
+        clr,
+      ),
+    )
+  }
   case steps {
     [] -> internal.NoAttribute
-    [clr] ->
-      internal.StyleClass(
-        flag.bg_color(),
-        internal.Colored(
-          "bg-" <> internal.format_color_class(clr),
-          "background-color",
-          clr,
-        ),
-      )
+    [ColorStep(clr)] -> to_bg_color(clr)
+    [PercentStep(_, clr)] -> to_bg_color(clr)
+    [PxStep(_, clr)] -> to_bg_color(clr)
     _ -> {
+      let #(direction_class, direction_prop) = direction_class_prop(direction)
       let class_parts =
-        [internal.float_class(angle)]
-        |> list.append(list.map(steps, internal.format_color_class))
+        [direction_class]
+        |> list.append(
+          list.map(steps, fn(step) {
+            case step {
+              ColorStep(clr) -> internal.format_color_class(clr)
+              PercentStep(position, clr) ->
+                internal.format_color_class(clr)
+                <> "-"
+                <> int.to_string(position)
+                <> "-pct"
+              PxStep(position, clr) ->
+                internal.format_color_class(clr)
+                <> "-"
+                <> int.to_string(position)
+                <> "-px"
+            }
+          }),
+        )
         |> string.join("-")
 
       let color_parts =
-        list.map(steps, internal.format_color)
-        |> list.prepend(float.to_string(angle) <> "rad")
+        list.map(steps, fn(step) {
+          case step {
+            ColorStep(clr) -> internal.format_color(clr)
+            PercentStep(position, clr) ->
+              internal.format_color(clr)
+              <> " "
+              <> int.to_string(position)
+              <> "%"
+            PxStep(position, clr) ->
+              internal.format_color(clr)
+              <> " "
+              <> int.to_string(position)
+              <> "px"
+          }
+        })
+        |> list.prepend(direction_prop)
         |> string.join(", ")
 
       internal.StyleClass(
@@ -118,5 +158,26 @@ pub fn gradient(angle: Float, steps: List(Color)) -> Attr(decorative, msg) {
         ),
       )
     }
+  }
+}
+
+fn direction_class_prop(direction) {
+  case direction {
+    ToUp -> #("to-up", "to up")
+    ToDown -> #("to-down", "to down")
+    ToRight -> #("to-right", "to right")
+    ToTopRight -> #("to-top-right", "to top right")
+    ToBottomRight -> #("to-bottom-right", "to bottom right")
+    ToLeft -> #("to-left", "to left")
+    ToTopLeft -> #("to-top-left", "to topleft")
+    ToBottomLeft -> #("to-bottom-left", "to bottom left")
+    ToRad(angle) -> #(
+      internal.float_class(angle),
+      float.to_string(angle) <> "rad",
+    )
+    ToDegrees(angle) -> #(
+      internal.float_class(int.to_float(angle)),
+      float.to_string(int.to_float(angle)) <> "degrees",
+    )
   }
 }

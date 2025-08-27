@@ -133,6 +133,8 @@ pub const classes_width_exact = "we"
 
 pub const classes_width_fill_portion = "wfp"
 
+pub const classes_width_fill_percent = "wfpc"
+
 pub const classes_height_fill = "hf"
 
 pub const classes_height_content = "hc"
@@ -140,6 +142,8 @@ pub const classes_height_content = "hc"
 pub const classes_height_exact = "he"
 
 pub const classes_height_fill_portion = "hfp"
+
+pub const classes_height_fill_percent = "hfpc"
 
 pub const classes_se_button = "sbt"
 
@@ -662,8 +666,6 @@ pub fn rules() {
   overrides() <> render_compact(list.flatten([base_sheet(), common_values()]))
 }
 
-// Note: The variable base_sheet is assumed to be defined elsewhere similarly.
-
 pub fn el_description() {
   [
     Prop("display", "flex"),
@@ -742,6 +744,9 @@ pub fn base_sheet() {
       Prop("height", "100%"),
       Prop("padding", "0"),
       Prop("margin", "0"),
+    ]),
+    Class(".transparency-0", [
+      Prop("opacity", "0"),
     ]),
     Class(
       dot(classes_any) <> dot(classes_single) <> dot(classes_image_container),

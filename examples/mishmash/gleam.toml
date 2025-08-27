@@ -1,6 +1,5 @@
-name = "facet"
+name = "mishmash"
 version = "1.0.0"
-target = "javascript"
 
 # Fill out these fields if you intend to generate HTML documentation or publish
 # your project to the Hex package manager.
@@ -15,9 +14,9 @@ target = "javascript"
 
 [dependencies]
 gleam_stdlib = ">= 0.44.0 and < 2.0.0"
+facet = { path = "../.." }
 lustre = ">= 5.3.4 and < 6.0.0"
-gleam_community_maths = ">= 2.0.0 and < 3.0.0"
-gleam_json = ">= 3.0.2 and < 4.0.0"
 
 [dev-dependencies]
 gleeunit = ">= 1.0.0 and < 2.0.0"
+lustre_dev_tools = ">= 1.9.2 and < 2.0.0"
