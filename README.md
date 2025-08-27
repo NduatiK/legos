@@ -3,6 +3,8 @@
 [![Package Version](https://img.shields.io/hexpm/v/legos)](https://hex.pm/packages/legos)
 [![Hex Docs](https://img.shields.io/badge/hex-docs-ffaff3)](https://hexdocs.pm/legos/)
 
+Layout and style that's easy to refactor, all without thinking about CSS.
+
 ```sh
 gleam add legos@1
 ```
