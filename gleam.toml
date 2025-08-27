@@ -5,7 +5,7 @@ target = "javascript"
 
 description = "Layout and style that's easy to refactor, all without thinking about CSS."
 licences = ["MIT"]
-# repository = { type = "github", user = "", repo = "" }
+repository = { type = "github", user = "NduatiK", repo = "legos" }
 # links = [{ title = "Website", href = "" }]
 #
 # For a full reference of all the available options, you can have a look at
