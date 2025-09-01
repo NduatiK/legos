@@ -53,12 +53,12 @@ pub type Location {
 
 pub fn alignments() {
   [
+    CenterX,
+    CenterY,
     Top,
     Bottom,
     Right,
     Left,
-    CenterX,
-    CenterY,
   ]
 }
 

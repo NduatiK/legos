@@ -1,11 +1,14 @@
 import gleam/int
 import gleam/list
+import gleam/option.{None, Some}
+import gleam/string
 import legos/background
 import legos/border
 import legos/color
 import legos/element as ui
 import legos/font
 import lustre/attribute
+import lustre/effect
 import mishmash/colors
 import mishmash/components.{
   button, card, card_text, divider, gutter_x, max_width, primary_button,
@@ -17,7 +20,7 @@ pub opaque type Model {
 }
 
 pub fn init(_flags) {
-  Model(0)
+  #(Model(0), effect.none())
 }
 
 pub opaque type Msg {
@@ -27,8 +30,8 @@ pub opaque type Msg {
 
 pub fn update(model: Model, msg) {
   case msg {
-    Incr -> Model(count: model.count + 1)
-    Decr -> Model(count: model.count - 1)
+    Incr -> #(Model(count: model.count + 1), effect.none())
+    Decr -> #(Model(count: model.count - 1), effect.none())
   }
 }
 
@@ -46,8 +49,11 @@ pub fn view(model: Model) {
       ui.vspace(100),
       view_about_2(),
       ui.vspace(100),
-      view_about_3(),
+      section_testimonials(),
       ui.vspace(100),
+      divider(border.solid(), colors.border()),
+      ui.vspace(100),
+      section_you_may_also_like(),
     ],
   )
 }
@@ -367,7 +373,7 @@ fn view_about_2() {
   )
 }
 
-fn view_about_3() {
+fn section_testimonials() {
   ui.column(
     [
       ui.padding_xy(gutter_x, 36),
@@ -410,4 +416,176 @@ fn testimonial(name, role, quote) {
       ui.text(quote),
     ]),
   ])
+}
+
+type ProductTag {
+  Cool
+  Bestseller
+  Sale
+}
+
+fn section_you_may_also_like() {
+  ui.column(
+    [
+      ui.padding_xy(gutter_x, 36),
+      ui.center_x(),
+      ui.width(ui.fill() |> ui.maximum(max_width)),
+    ],
+    [
+      ui.el(fonts.heading_2(), ui.text("You may also like")),
+      ui.vspace(80),
+      ui.row(
+        [
+          ui.spacing(50),
+          ui.width(ui.fill()),
+          ui.scrollbar_x(),
+          ui.html_attribute(attribute.style("flex-basis", "auto")),
+          ui.align_left(),
+          // ui.height(ui.px(430)),
+        ],
+        [
+          product("Log Cover", "€10.00", Some(Bestseller)),
+          product("Undated Large", "€20.00", None),
+          product("Undated Medium", "€20.00", Some(Bestseller)),
+          product("Naked", "€20.00", Some(Sale)),
+        ],
+      ),
+    ],
+  )
+}
+
+fn product(
+  name: String,
+  price: String,
+  tag: option.Option(ProductTag),
+) -> ui.Element(a) {
+  let view_circle = fn(size, color) {
+    ui.el(
+      [
+        ui.width(ui.px(size)),
+        ui.height(ui.px(size)),
+        background.color(color),
+        border.rounded_pct(50),
+      ],
+      ui.none,
+    )
+  }
+  let view_tag = fn(tag) {
+    ui.in_front(ui.el(
+      [
+        ui.move_down(20.0),
+        ui.move_right(15.0),
+        // background.color(color.sky_200()),
+        font.size(11),
+        font.medium(),
+        font.letter_spacing(1.0),
+      ],
+      case tag {
+        Bestseller ->
+          ui.row(
+            [
+              ui.in_front(ui.el(
+                [
+                  ui.center_x(),
+                  ui.center_y(),
+                ],
+                ui.text(string.uppercase("Bestseller")),
+              )),
+              ui.spacing(-8),
+            ],
+            [
+              view_circle(36, colors.peach_dark()),
+              view_circle(36, colors.peach_dark()),
+              view_circle(36, colors.peach_dark()),
+            ],
+          )
+        Sale ->
+          ui.column(
+            [
+              ui.move_up(2.0),
+              ui.spacing(-8),
+              ui.in_front(ui.el(
+                [
+                  ui.center_x(),
+                  ui.center_y(),
+                ],
+                ui.text(string.uppercase("Sale")),
+              )),
+            ],
+            [
+              ui.row([ui.spacing(-4)], [
+                view_circle(24, colors.pastel_orange()),
+                view_circle(24, colors.pastel_orange()),
+              ]),
+              ui.row([ui.spacing(-4)], [
+                view_circle(24, colors.pastel_orange()),
+                view_circle(24, colors.pastel_orange()),
+              ]),
+            ],
+          )
+        Cool ->
+          ui.column(
+            [
+              ui.move_up(2.0),
+              ui.spacing(-8),
+              ui.in_front(ui.el(
+                [
+                  ui.center_x(),
+                  ui.center_y(),
+                ],
+                ui.text(string.uppercase("Sale")),
+              )),
+            ],
+            [
+              ui.row([ui.spacing(-4)], [
+                view_circle(24, color.blue_400()),
+                view_circle(24, color.blue_400()),
+              ]),
+              ui.row([ui.spacing(-4)], [
+                view_circle(24, color.blue_400()),
+                view_circle(24, color.blue_400()),
+              ]),
+            ],
+          )
+      },
+    ))
+  }
+
+  ui.el(
+    [
+      option.map(tag, view_tag)
+      |> option.unwrap(ui.attr_none()),
+    ],
+    ui.column(
+      [
+        background.color(color.white()),
+        border.rounded(12),
+        font.size(16),
+        ui.clip(),
+        ui.spacing(10),
+      ],
+      [
+        ui.el(
+          [
+            ui.width(ui.px(300)),
+            ui.height(ui.px(350)),
+            background.color(color.neutral_300()),
+          ],
+          ui.none,
+        ),
+        ui.column(
+          [
+            ui.spacing(8),
+            ui.padding_xy(12, 8),
+            font.medium(),
+          ],
+          [
+            ui.el([], ui.text(name)),
+            ui.el([font.color(colors.secondary_text())], ui.text(price)),
+            ui.vspace(2),
+          ],
+        ),
+      ],
+    ),
+  )
 }

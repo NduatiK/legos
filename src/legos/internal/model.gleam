@@ -1257,7 +1257,7 @@ fn gather_attr_recursive(
             Empty -> styles
             Text(_) -> styles
             Unstyled(_) -> styles
-            Styled(styles:, ..) -> list.append(styles, styles)
+            Styled(styles: s, ..) -> list.append(s, styles)
           }
           gather_attr_recursive(
             classes,
@@ -3015,13 +3015,13 @@ pub fn render_style_rule(
     }
 
     Transform(transform) -> {
-      let val_ = transform_value(transform)
-      let class_ = transform_class(transform)
+      let val_ = echo transform_value(echo transform)
+      let class_ = echo transform_class(transform)
 
       case class_, val_ {
         Some(cls), Some(v) ->
-          render_style(options, maybe_pseudo, "." <> cls, [
-            Property("transform", v),
+          echo render_style(options, maybe_pseudo, "." <> cls, [
+            Property("transform", echo v),
           ])
 
         _, _ -> []

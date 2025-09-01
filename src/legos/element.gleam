@@ -155,7 +155,12 @@ pub fn text(content: String) -> Element(msg) {
 }
 
 pub fn el(attributes: List(Attribute(msg)), child: Element(msg)) -> Element(msg) {
-  model.element(model.AsEl, model.div, attributes, model.Unkeyed([child]))
+  model.element(
+    model.AsEl,
+    model.div,
+    [width(shrink()), height(shrink()), ..attributes],
+    model.Unkeyed([child]),
+  )
 }
 
 pub fn row(

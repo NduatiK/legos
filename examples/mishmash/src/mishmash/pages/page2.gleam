@@ -3,6 +3,7 @@ import legos/border
 import legos/color
 import legos/element as ui
 import legos/font
+import lustre/effect
 import mishmash/colors
 import mishmash/components.{divider, gutter_x, max_width}
 import mishmash/fonts
@@ -12,7 +13,7 @@ pub opaque type Model {
 }
 
 pub fn init(_flags) {
-  Model(0)
+  #(Model(0), effect.none())
 }
 
 pub opaque type Msg {
@@ -22,8 +23,8 @@ pub opaque type Msg {
 
 pub fn update(model: Model, msg) {
   case msg {
-    Incr -> Model(count: model.count + 1)
-    Decr -> Model(count: model.count - 1)
+    Incr -> #(Model(count: model.count + 1), effect.none())
+    Decr -> #(Model(count: model.count - 1), effect.none())
   }
 }
 
