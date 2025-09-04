@@ -106,11 +106,11 @@ pub fn rounded_pct(radius: Int) {
   )
 }
 
-pub fn round_each(
-  top_left: Int,
-  top_right: Int,
-  bottom_left: Int,
-  bottom_right: Int,
+pub fn rounded_each(
+  top_left top_left: Int,
+  top_right top_right: Int,
+  bottom_left bottom_left: Int,
+  bottom_right bottom_right: Int,
 ) {
   internal.StyleClass(
     flag.border_round(),
