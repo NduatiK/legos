@@ -5,7 +5,7 @@ import gleam/string
 import legos/background
 import legos/border
 import legos/color
-import legos/element as ui
+import legos/ui
 import legos/font
 import lustre/attribute
 import lustre/effect

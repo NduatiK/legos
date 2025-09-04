@@ -3015,13 +3015,13 @@ pub fn render_style_rule(
     }
 
     Transform(transform) -> {
-      let val_ = echo transform_value(echo transform)
-      let class_ = echo transform_class(transform)
+      let val_ = transform_value(transform)
+      let class_ = transform_class(transform)
 
       case class_, val_ {
         Some(cls), Some(v) ->
-          echo render_style(options, maybe_pseudo, "." <> cls, [
-            Property("transform", echo v),
+          render_style(options, maybe_pseudo, "." <> cls, [
+            Property("transform", v),
           ])
 
         _, _ -> []

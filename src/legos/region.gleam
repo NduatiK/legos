@@ -1,5 +1,5 @@
-import legos/element.{type Attribute}
 import legos/internal/model as internal
+import legos/ui.{type Attribute}
 
 /// Mark an element as the main content area
 pub fn main_content() -> Attribute(msg) {

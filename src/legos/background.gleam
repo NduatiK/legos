@@ -2,9 +2,9 @@ import gleam/float
 import gleam/int
 import gleam/list
 import gleam/string
-import legos/element.{type Attr, type Attribute, type Color}
 import legos/internal/flag
 import legos/internal/model as internal
+import legos/ui.{type Attr, type Attribute, type Color}
 import lustre/attribute as attr
 
 /// A background color attribute

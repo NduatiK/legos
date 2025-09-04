@@ -3,10 +3,10 @@ import gleam/int
 import gleam/list
 import gleam/option.{type Option}
 import gleam/string
-import legos/element.{type Attr, type Attribute, type Color}
 import legos/internal/flag
 import legos/internal/model as internal
 import legos/internal/style
+import legos/ui.{type Attr, type Attribute, type Color}
 
 pub type Font =
   internal.Font

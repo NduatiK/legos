@@ -1,5 +1,5 @@
 import legos/border
-import legos/element as ui
+import legos/ui
 import legos/font
 
 type Person {

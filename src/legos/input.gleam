@@ -7,15 +7,15 @@ import gleam/result
 import legos/background
 import legos/border
 import legos/color.{rgb, rgba, white}
-import legos/element.{
-  type Attribute, type Element, fill, height, none, pointer, shrink, width,
-}
 import legos/events
 import legos/font
 import legos/internal/flag
 import legos/internal/model as internal
 import legos/internal/style
 import legos/region
+import legos/ui.{
+  type Attribute, type Element, fill, height, none, pointer, shrink, width,
+}
 import lustre/attribute
 import lustre/element/html
 import lustre/event
@@ -179,7 +179,7 @@ pub fn checkbox(
   let attributes = [
     case is_hidden_label(label) {
       True -> internal.NoAttribute
-      False -> element.spacing(6)
+      False -> ui.spacing(6)
     },
     events.on_click(on_change(!checked)),
     region.announce(),
@@ -192,7 +192,7 @@ pub fn checkbox(
     }),
     tab_index(0),
     pointer(),
-    element.align_left(),
+    ui.align_left(),
     width(fill()),
     ..attrs
   ]
@@ -214,7 +214,7 @@ pub fn checkbox(
       internal.AsEl,
       internal.div,
       [
-        element.center_y(),
+        ui.center_y(),
         height(fill()),
         width(shrink()),
       ],
@@ -225,14 +225,14 @@ pub fn checkbox(
 
 /// Default checkbox icon
 // pub fn default_checkbox(checked: Bool) -> Element(msg) {
-//   element.el(
+//   ui.el(
 //     [
 //       internal.html_class("focusable"),
-//       width(element.px(14)),
-//       height(element.px(14)),
+//       width(ui.px(14)),
+//       height(ui.px(14)),
 //       background.color(white()),
 //       border.rounded(3),
-//       element.center_y(),
+//       ui.center_y(),
 //       border.width(case checked {
 //         True -> 5
 //         False -> 1
@@ -247,13 +247,13 @@ pub fn checkbox(
 // }
 
 pub fn default_checkbox(checked: Bool) -> Element(msg) {
-  element.el(
+  ui.el(
     [
       internal.html_class("focusable"),
-      element.width(element.px(14)),
-      element.height(element.px(14)),
+      ui.width(ui.px(14)),
+      ui.height(ui.px(14)),
       font.color(white()),
-      element.center_y(),
+      ui.center_y(),
       font.size(9),
       font.center(),
       border.rounded(3),
@@ -276,16 +276,16 @@ pub fn default_checkbox(checked: Bool) -> Element(msg) {
         True -> 0
         False -> 1
       }),
-      element.in_front(element.el(
+      ui.in_front(ui.el(
         [
           border.color(white()),
-          element.height(element.px(6)),
-          element.width(element.px(9)),
-          element.rotate(-45.0),
-          element.center_x(),
-          element.center_y(),
-          element.move_up(1.0),
-          element.transparent(!checked),
+          ui.height(ui.px(6)),
+          ui.width(ui.px(9)),
+          ui.rotate(-45.0),
+          ui.center_x(),
+          ui.center_y(),
+          ui.move_up(1.0),
+          ui.transparent(!checked),
           border.width_each(top: 0, left: 2, bottom: 2, right: 0),
         ],
         none,
@@ -548,8 +548,8 @@ pub fn thumb(attrs: List(Attribute(a))) -> Thumb(a) {
 /// Default slider thumb
 pub fn default_thumb() -> Thumb(a) {
   Thumb([
-    width(element.px(16)),
-    height(element.px(16)),
+    width(ui.px(16)),
+    height(ui.px(16)),
     border.rounded(8),
     border.width(1),
     border.color(rgb(0.5, 0.5, 0.5)),
@@ -674,30 +674,30 @@ pub fn slider(
     list.flatten([
       case is_hidden_label(label_val) {
         True -> [internal.NoAttribute]
-        False -> [element.spacing_xy(spacing_x, spacing_y)]
+        False -> [ui.spacing_xy(spacing_x, spacing_y)]
       },
       [region.announce()],
       [
-        element.width(case track_width {
-          None -> element.fill()
-          Some(internal.Px(_)) -> element.shrink()
+        ui.width(case track_width {
+          None -> ui.fill()
+          Some(internal.Px(_)) -> ui.shrink()
           Some(x) -> x
         }),
       ],
       [
-        element.height(case track_height {
-          None -> element.shrink()
-          Some(internal.Px(_)) -> element.shrink()
+        ui.height(case track_height {
+          None -> ui.shrink()
+          Some(internal.Px(_)) -> ui.shrink()
           Some(x) -> x
         }),
       ],
     ]),
     label_val,
-    element.row(
+    ui.row(
       [
-        element.width(option.unwrap(track_width, element.fill())),
-        element.height(option.unwrap(track_height, element.px(20))),
-        element.behind_content(element.el([element.alpha(0.0)], thumb)),
+        ui.width(option.unwrap(track_width, ui.fill())),
+        ui.height(option.unwrap(track_height, ui.px(20))),
+        ui.behind_content(ui.el([ui.alpha(0.0)], thumb)),
       ],
       [
         internal.element(
@@ -752,30 +752,30 @@ pub fn slider(
                 True -> internal.Attr(attribute.attribute("orient", "vertical"))
                 False -> internal.NoAttribute
               },
-              element.width(case vertical {
-                True -> option.unwrap(track_height, element.px(20))
-                False -> option.unwrap(track_width, element.fill())
+              ui.width(case vertical {
+                True -> option.unwrap(track_height, ui.px(20))
+                False -> option.unwrap(track_width, ui.fill())
               }),
-              element.height(case vertical {
-                True -> option.unwrap(track_width, element.fill())
-                False -> option.unwrap(track_height, element.px(20))
+              ui.height(case vertical {
+                True -> option.unwrap(track_width, ui.fill())
+                False -> option.unwrap(track_height, ui.px(20))
               }),
             ],
           ]),
           internal.Unkeyed([]),
         ),
-        element.el(
+        ui.el(
           list.flatten([
             [
-              element.width(option.unwrap(track_width, element.fill())),
-              element.height(option.unwrap(track_height, element.px(20))),
+              ui.width(option.unwrap(track_width, ui.fill())),
+              ui.height(option.unwrap(track_height, ui.px(20))),
             ],
             attributes,
             [
-              element.behind_content(thumb),
+              ui.behind_content(thumb),
             ],
           ]),
-          element.none,
+          ui.none,
         ),
       ],
     ),
@@ -788,34 +788,34 @@ fn view_horizontal_thumb(
   track_height: Option(internal.Length),
 ) -> Element(msg) {
   // track
-  element.row(
+  ui.row(
     [
-      element.height(option.unwrap(track_height, element.fill())),
-      element.center_y(),
-      element.width(element.fill()),
+      ui.height(option.unwrap(track_height, ui.fill())),
+      ui.center_y(),
+      ui.width(ui.fill()),
     ],
     [
       // leading_space
-      element.el(
+      ui.el(
         [
-          element.height(internal.Content),
-          element.width(element.fill_portion(float.round(factor *. 10_000.0))),
+          ui.height(internal.Content),
+          ui.width(ui.fill_portion(float.round(factor *. 10_000.0))),
         ],
-        element.none,
+        ui.none,
       ),
       // thumb
-      element.el([element.center_y(), ..thumb_attributes], element.none),
+      ui.el([ui.center_y(), ..thumb_attributes], ui.none),
       // trailing_space
-      element.el(
+      ui.el(
         [
-          element.height(option.unwrap(track_height, element.fill())),
-          element.width(
-            element.fill_portion(float.round(
+          ui.height(option.unwrap(track_height, ui.fill())),
+          ui.width(
+            ui.fill_portion(float.round(
               float.absolute_value(1.0 -. factor) *. 10_000.0,
             )),
           ),
         ],
-        element.none,
+        ui.none,
       ),
     ],
   )
@@ -826,27 +826,27 @@ fn view_vertical_thumb(
   thumb_attributes: List(Attribute(msg)),
   track_width: Option(internal.Length),
 ) -> Element(msg) {
-  element.column(
+  ui.column(
     [
-      element.height(element.fill()),
-      element.width(option.unwrap(track_width, element.fill())),
-      element.center_x(),
+      ui.height(ui.fill()),
+      ui.width(option.unwrap(track_width, ui.fill())),
+      ui.center_x(),
     ],
     [
-      element.el(
+      ui.el(
         [
-          element.height(
-            element.fill_portion(float.round(
+          ui.height(
+            ui.fill_portion(float.round(
               float.absolute_value(1.0 -. factor) *. 10_000.0,
             )),
           ),
         ],
-        element.none,
+        ui.none,
       ),
-      element.el([element.center_x(), ..thumb_attributes], element.none),
-      element.el(
-        [element.height(element.fill_portion(float.round(factor *. 10_000.0)))],
-        element.none,
+      ui.el([ui.center_x(), ..thumb_attributes], ui.none),
+      ui.el(
+        [ui.height(ui.fill_portion(float.round(factor *. 10_000.0)))],
+        ui.none,
       ),
     ],
   )
@@ -926,20 +926,21 @@ fn text_helper(
             // -- Note: Due to a weird edgecase in...Edge...
             // -- `type` needs to come _before_ `value`
             // -- More reading: https://github.com/mdgriffith/elm-ui/pull/94/commits/4f493a27001ccc3cf1f2baa82e092c35d3811876
-            [internal.Attr(attribute.type_(input_type)), internal.html_class(
-                style.classes_input_text,
-              )]
+            [
+              internal.Attr(attribute.type_(input_type)),
+              internal.html_class(style.classes_input_text),
+            ]
 
           TextArea -> [
-            element.clip(),
-            element.height(element.fill()),
+            ui.clip(),
+            ui.height(ui.fill()),
             internal.html_class(style.classes_input_multiline),
             calc_move_to_compensate_for_padding(with_defaults),
 
             // -- The only reason we do this padding trick is so that when the user clicks in the padding,
             // -- that the cursor will reset correctly.
             // -- This could probably be combined with the above `calc_move_to_compensate_for_padding`
-            element.padding_each(
+            ui.padding_each(
               top: parent_padding.top,
               left: parent_padding.left,
               bottom: parent_padding.bottom,
@@ -970,12 +971,12 @@ fn text_helper(
     TextArea ->
       // -- textarea with height-content means that
       // -- the input element is rendered `inFront` with a transparent background
-      // -- Then the input text is rendered as the space filling element.
+      // -- Then the input text is rendered as the space filling ui.
       internal.element(
         internal.AsEl,
         internal.div,
         [
-          element.width(element.fill()),
+          ui.width(ui.fill()),
           case list.any(with_defaults, has_focus_style) {
             True -> internal.NoAttribute
             False -> internal.html_class(style.classes_focused_within)
@@ -986,7 +987,7 @@ fn text_helper(
         ]
           |> fn(a) {
             case height_constrained {
-              True -> [element.scrollbar_y(), ..a]
+              True -> [ui.scrollbar_y(), ..a]
               False -> a
             }
           },
@@ -995,9 +996,9 @@ fn text_helper(
             internal.AsParagraph,
             internal.div,
             [
-              element.width(element.fill()),
-              element.height(element.fill()),
-              element.in_front(input_element),
+              ui.width(ui.fill()),
+              ui.height(ui.fill()),
+              ui.in_front(input_element),
               internal.html_class(style.classes_input_multiline_parent),
               ..redistributed.wrapper
             ],
@@ -1007,7 +1008,7 @@ fn text_helper(
                   None ->
                     // -- Without this, firefox will make the text area lose focus
                     // -- if the input is empty and you mash the keyboard
-                    [element.text("\u{00A0}")]
+                    [ui.text("\u{00A0}")]
 
                   Some(place) -> [render_placeholder(place, [], True)]
                 }
@@ -1032,7 +1033,7 @@ fn text_helper(
         internal.AsEl,
         internal.div,
         [
-          element.width(element.fill()),
+          ui.width(ui.fill()),
           case list.any(with_defaults, has_focus_style) {
             True -> internal.NoAttribute
             False -> internal.html_class(style.classes_focused_within)
@@ -1042,7 +1043,7 @@ fn text_helper(
             case placeholder {
               None -> []
               Some(place) -> [
-                element.behind_content(render_placeholder(
+                ui.behind_content(render_placeholder(
                   place,
                   redistributed.cover,
                   text_val == "",
@@ -1060,7 +1061,7 @@ fn text_helper(
       internal.Class(flag.cursor(), style.classes_cursor_text),
       case is_hidden_label(label_val) {
         True -> internal.NoAttribute
-        False -> element.spacing(5)
+        False -> ui.spacing(5)
       },
       region.announce(),
       ..redistributed.full_parent
@@ -1251,14 +1252,14 @@ fn redistribute_over(
 
           False -> {
             let new_height =
-              element.html_attribute(attribute.style(
+              ui.html_attribute(attribute.style(
                 "height",
                 "calc(1.0em + "
                   <> float.to_string(2.0 *. float.min(t, b))
                   <> "px)",
               ))
             let new_line_height =
-              element.html_attribute(attribute.style(
+              ui.html_attribute(attribute.style(
                 "line-height",
                 "calc(1.0em + "
                   <> float.to_string(2.0 *. float.min(t, b))
@@ -1482,7 +1483,7 @@ fn radio_helper(
       _ -> Idle
     }
 
-    element.el(
+    ui.el(
       [
         pointer(),
         case orientation {
@@ -1504,12 +1505,12 @@ fn radio_helper(
 
   let option_area = case orientation {
     Row ->
-      element.row(
+      ui.row(
         [hidden_label_attribute(label), ..attrs],
         list.map(options, render_option),
       )
     Column ->
-      element.column(
+      ui.column(
         [hidden_label_attribute(label), ..attrs],
         list.map(options, render_option),
       )
@@ -1517,7 +1518,7 @@ fn radio_helper(
 
   apply_label(
     [
-      element.align_left(),
+      ui.align_left(),
       tab_index(0),
       internal.html_class("focus"),
       region.announce(),
@@ -1532,11 +1533,11 @@ fn default_radio_option(
   option_label: Element(msg),
 ) -> fn(OptionState) -> Element(msg) {
   fn(status: OptionState) {
-    element.row([element.spacing(10), element.align_left(), width(shrink())], [
-      element.el(
+    ui.row([ui.spacing(10), ui.align_left(), width(shrink())], [
+      ui.el(
         [
-          width(element.px(14)),
-          height(element.px(14)),
+          width(ui.px(14)),
+          height(ui.px(14)),
           background.color(white()),
           border.rounded(7),
           case status {
@@ -1554,7 +1555,7 @@ fn default_radio_option(
         ],
         none,
       ),
-      element.el(
+      ui.el(
         [width(fill()), internal.html_class("unfocusable")],
         option_label,
       ),
@@ -1595,14 +1596,14 @@ fn default_text_box_style() {
     // darkGrey equivalent
     background.color(white()),
     border.width(1),
-    element.spacing(5),
-    element.width(element.fill()),
-    element.height(element.shrink()),
+    ui.spacing(5),
+    ui.width(ui.fill()),
+    ui.height(ui.shrink()),
   ]
 }
 
 fn default_text_padding() {
-  element.padding_xy(12, 12)
+  ui.padding_xy(12, 12)
 }
 
 fn get_height(attr: Attribute(msg)) {
@@ -1630,7 +1631,7 @@ fn render_placeholder(
   on: Bool,
 ) -> Element(msg) {
   let Placeholder(placeholder_attrs, placeholder_el) = p
-  element.el(
+  ui.el(
     list.flatten([
       for_placeholder,
       [
@@ -1641,13 +1642,13 @@ fn render_placeholder(
           <> " "
           <> style.classes_pass_pointer_events,
         ),
-        element.clip(),
+        ui.clip(),
         border.width(0),
         border.color(rgba(0.0, 0.0, 0.0, 0.0)),
         background.color(rgba(0.0, 0.0, 0.0, 0.0)),
-        element.height(element.fill()),
-        element.width(element.fill()),
-        element.alpha(case on {
+        ui.height(ui.fill()),
+        ui.width(ui.fill()),
+        ui.alpha(case on {
           True -> 1.0
           False -> 0.0
         }),
@@ -1677,7 +1678,7 @@ fn calc_move_to_compensate_for_padding(
 
   case list.fold_right(attrs, None, gather_spacing) {
     None -> internal.NoAttribute
-    Some(v_space) -> element.move_up(float.floor(int.to_float(v_space) /. 2.0))
+    Some(v_space) -> ui.move_up(float.floor(int.to_float(v_space) /. 2.0))
   }
 }
 

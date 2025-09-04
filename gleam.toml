@@ -1,5 +1,5 @@
 name = "legos"
-version = "1.0.3"
+version = "1.2.0"
 
 description = "Layout and style that's easy to refactor, all without thinking about CSS."
 licences = ["BSD-3-Clause"]

@@ -3,7 +3,7 @@ import gleam/result
 import gleam/uri
 import legos/background
 import legos/color
-import legos/element as ui
+import legos/ui
 import legos/font
 import lustre
 import lustre/effect
@@ -93,7 +93,7 @@ fn set_page(model, to_model, to_msg, page_and_effect) {
 fn view(model: Model) {
   html.div([], [
     html.nav([], [
-      // html.a([attribute.href("/wobble")], [element.text("Go to wobble")]),
+      // html.a([attribute.href("/wobble")], [ui.text("Go to wobble")]),
     ]),
     ui.layout(
       [
@@ -115,7 +115,7 @@ fn view(model: Model) {
           case model.page {
             HomeModel(model) -> home.view(model) |> ui.map(HomeMsg)
             Page2Model(model) -> page2.view(model) |> ui.map(Page2Msg)
-            // Wobble -> html.h1([], [element.text("You're on wobble")])
+            // Wobble -> html.h1([], [ui.text("You're on wobble")])
           },
         ],
       ),

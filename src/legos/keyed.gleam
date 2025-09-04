@@ -1,6 +1,6 @@
-import legos/element.{type Attribute, type Element, height, shrink, width}
 import legos/internal/model as internal
 import legos/internal/style
+import legos/ui.{type Attribute, type Element, height, shrink, width}
 
 /// Create a keyed element that helps optimize cases where children are getting
 /// added, moved, removed, etc. Common examples include:

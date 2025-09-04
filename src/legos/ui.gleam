@@ -33,8 +33,8 @@ pub type Decoration(a, b) =
   model.Attribute(a, b)
 
 /// Render a Lustre element with legos
-pub fn html(a: fn(model.LayoutContext) -> vnode.Element(e)) -> Element(e) {
-  model.Unstyled(a)
+pub fn html(node) -> Element(e) {
+  model.Unstyled(fn(_) { node })
 }
 
 /// Render a Lustre attribute with legos

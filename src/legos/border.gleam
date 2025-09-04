@@ -1,9 +1,9 @@
 import gleam/int
 import gleam/pair
-import legos/element.{type Color}
 import legos/internal/flag
 import legos/internal/model as internal
 import legos/internal/style
+import legos/ui.{type Color}
 
 pub type Shadow =
   internal.Shadow
