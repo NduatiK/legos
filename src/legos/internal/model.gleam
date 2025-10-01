@@ -1,5 +1,6 @@
 import gleam/dynamic/decode
 import gleam/float
+import gleam/function
 import gleam/int
 import gleam/json
 import gleam/list
@@ -16,6 +17,7 @@ import lustre/element.{type Element as LustreElement}
 import lustre/element/html
 import lustre/element/keyed
 import lustre/vdom/vattr
+import lustre/vdom/vnode
 
 // import lustre/vdom/vnode.{type Element as VNode}
 
@@ -1892,7 +1894,7 @@ fn static_root(opts: OptionRecord) {
     Layout ->
       // wrap the style node in a div to prevent `Dark Reader` from blowin up the dom.
       element.element("div", [], [
-        element.element("style", [], [element.text(style.rules())]),
+        style_node(style.rules()),
       ])
 
     NoStaticStyleSheet -> element.text("")
@@ -2314,18 +2316,12 @@ fn to_style_sheet(
     Layout ->
       // wrap the style node in a div to prevent `Dark Reader` from blowin up the dom.
       html.div([], [
-        element.element("style", [], [
-          html.text(to_style_sheet_string(options, style_sheet)),
-        ]),
+        style_node(to_style_sheet_string(options, style_sheet)),
       ])
 
     NoStaticStyleSheet ->
       // wrap the style node in a div to prevent `Dark Reader` from blowin up the dom.
-      html.div([], [
-        element.element("style", [], [
-          html.text(to_style_sheet_string(options, style_sheet)),
-        ]),
-      ])
+      html.div([], [style_node(to_style_sheet_string(options, style_sheet))])
 
     WithVirtualCss ->
       element.element(
@@ -3466,4 +3462,15 @@ pub type ConvertedAdjustment {
 
 fn adjust(size: Float, height: Float, vertical: Float) -> FontSizing {
   FontSizing(vertical: vertical, height: height /. size, size: size)
+}
+
+fn style_node(str) {
+  vnode.unsafe_inner_html(
+    key: "",
+    mapper: function.identity,
+    namespace: "",
+    tag: "style",
+    attributes: [],
+    inner_html: str,
+  )
 }
