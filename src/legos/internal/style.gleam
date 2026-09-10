@@ -619,19 +619,28 @@ pub fn explainer() {
 "
 }
 
+fn range_map(
+  from start: Int,
+  to stop: Int,
+  with func: fn(Int) -> a,
+) -> List(a) {
+  int.range(start, stop, [], fn(acc, i) { [func(i), ..acc] })
+  |> list.reverse()
+}
+
 pub fn common_values() {
   list.flatten([
-    list.map(list.range(0, 6), fn(x) {
+    range_map(0, 6, fn(x) {
       Class(".border-" <> int.to_string(x), [
         Prop("border-width", int.to_string(x) <> "px"),
       ])
     }),
-    list.map(list.range(8, 32), fn(i) {
+    range_map(8, 32, fn(i) {
       Class(".font-size-" <> int.to_string(i), [
         Prop("font-size", int.to_string(i) <> "px"),
       ])
     }),
-    list.map(list.range(0, 24), fn(i) {
+    range_map(0, 24, fn(i) {
       Class(".p-" <> int.to_string(i), [
         Prop("padding", int.to_string(i) <> "px"),
       ])
