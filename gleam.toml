@@ -10,10 +10,10 @@ repository = { type = "github", user = "NduatiK", repo = "legos" }
 # https://gleam.run/writing-gleam/gleam-toml/.
 
 [dependencies]
-gleam_stdlib = ">= 0.44.0 and < 2.0.0"
-lustre = ">= 5.3.4 and < 6.0.0"
-gleam_community_maths = ">= 2.0.0 and < 3.0.0"
-gleam_json = ">= 3.0.2 and < 4.0.0"
+gleam_stdlib = ">= 1.0.5 and < 2.0.0"
+lustre = ">= 5.7.1 and < 6.0.0"
+gleam_community_maths = ">= 2.0.2 and < 3.0.0"
+gleam_json = ">= 3.1.0 and < 4.0.0"
 
 [dev-dependencies]
-gleeunit = ">= 1.0.0 and < 2.0.0"
+gleeunit = ">= 1.11.0 and < 2.0.0"
