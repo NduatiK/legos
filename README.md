@@ -5,6 +5,8 @@
 
 Layout and style that's easy to refactor, all without thinking about CSS.
 
+Ported from Matthew Griffith's excellent [elm-ui](https://github.com/mdgriffith/elm-ui)
+
 ```sh
 gleam add legos@1
 ```
