@@ -619,19 +619,28 @@ pub fn explainer() {
 "
 }
 
+/// The ints from `start` up to, but not including, `stop`.
+fn int_range(from start: Int, to stop: Int) -> List(Int) {
+  int.range(from: start, to: stop, with: [], run: list.prepend)
+  |> list.reverse
+}
+
 pub fn common_values() {
   list.flatten([
-    list.map(list.range(0, 6), fn(x) {
+    int_range(from: 0, to: 7)
+    |> list.map(fn(x) {
       Class(".border-" <> int.to_string(x), [
         Prop("border-width", int.to_string(x) <> "px"),
       ])
     }),
-    list.map(list.range(8, 32), fn(i) {
+    int_range(from: 8, to: 33)
+    |> list.map(fn(i) {
       Class(".font-size-" <> int.to_string(i), [
         Prop("font-size", int.to_string(i) <> "px"),
       ])
     }),
-    list.map(list.range(0, 24), fn(i) {
+    int_range(from: 0, to: 25)
+    |> list.map(fn(i) {
       Class(".p-" <> int.to_string(i), [
         Prop("padding", int.to_string(i) <> "px"),
       ])

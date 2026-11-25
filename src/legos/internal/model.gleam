@@ -1,6 +1,5 @@
 import gleam/dynamic/decode
 import gleam/float
-import gleam/function
 import gleam/int
 import gleam/json
 import gleam/list
@@ -3347,7 +3346,6 @@ fn map_html_attr(html_attr, fn_) {
       include:,
       prevent_default:,
       stop_propagation:,
-      immediate:,
       debounce:,
       throttle:,
     ) ->
@@ -3360,7 +3358,6 @@ fn map_html_attr(html_attr, fn_) {
         include:,
         prevent_default:,
         stop_propagation:,
-        immediate:,
         debounce:,
         throttle:,
       )
@@ -3467,7 +3464,6 @@ fn adjust(size: Float, height: Float, vertical: Float) -> FontSizing {
 fn style_node(str) {
   vnode.unsafe_inner_html(
     key: "",
-    mapper: function.identity,
     namespace: "",
     tag: "style",
     attributes: [],
